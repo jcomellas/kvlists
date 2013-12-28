@@ -68,7 +68,7 @@ get_path([Key | Tail], [Elem | _] = List) when is_integer(Key); is_tuple(Elem) -
     get_path_value(Key, fun (Value) -> get_path(Tail, Value) end, List);
 get_path([Key | Tail], [Elem | _] = List) when is_list(Elem) ->
     %% Lookups on lists of lists of key-value pairs.
-    get_path(Tail, filter_path(Key, List));
+    get_path(Tail, multi_get_path(Key, List));
 get_path(Key, List) when not is_list(Key) ->
     %% Scalar key lookups.
     get_path_value(Key, fun (Value) -> Value end, List);
@@ -91,18 +91,18 @@ get_path_value(Key, Fun, List) ->
         false        -> []
     end.
 
-filter_path(Key, List) ->
-    filter_path(Key, List, []).
+multi_get_path(Key, List) ->
+    multi_get_path(Key, List, []).
 
-filter_path(Key, [List | Tail], Acc) when is_list(List) ->
+multi_get_path(Key, [List | Tail], Acc) when is_list(List) ->
     NewAcc = case lists:keyfind(Key, 1, List) of
                  {Key, Value} -> [Value | Acc];
                  false        -> Acc
              end,
-    filter_path(Key, Tail, NewAcc);
-filter_path(Key, [_Elem | Tail], Acc) ->
-    filter_path(Key, Tail, Acc);
-filter_path(_Key, [], Acc) ->
+    multi_get_path(Key, Tail, NewAcc);
+multi_get_path(Key, [_Elem | Tail], Acc) ->
+    multi_get_path(Key, Tail, Acc);
+multi_get_path(_Key, [], Acc) ->
     lists:reverse(Acc).
 
 
@@ -140,10 +140,40 @@ set_path([Key | Tail], Value, List) ->
     set_value(Key, set_path(Tail, Value, Elem), List);
 set_path(Key, Value, List) ->
     if
-        is_list(List)   -> set_value(Key, Value, List);
-        is_integer(Key) -> set_nth(Key, Value, []);
-        true            -> [{Key, Value}]
+        is_list(List)->
+            if is_list(hd(List)) ->
+                    %% Set the value on multiple (identical) keys at the same time.
+                    multi_set_path(Key, Value, List);
+               true ->
+                    set_value(Key, Value, List)
+            end;
+        is_integer(Key) ->
+            set_nth(Key, Value, []);
+        true ->
+            [{Key, Value}]
     end.
+
+multi_set_path(Key, Value, List) when is_list(Value) ->
+    multi_set_path_list(Key, Value, List, []);
+multi_set_path(Key, Value, List) ->
+    multi_set_path_scalar(Key, Value, List, []).
+
+
+multi_set_path_list(Key, [Value | ValueTail], [Elem | ElemTail], Acc) ->
+    NewAcc = [lists:keyreplace(Key, 1, Elem, {Key, Value}) | Acc],
+    multi_set_path_list(Key, ValueTail, ElemTail, NewAcc);
+multi_set_path_list(Key, [Value | ValueTail], [], Acc) ->
+    multi_set_path_list(Key, ValueTail, [], [[{Key, Value}] | Acc]);
+multi_set_path_list(_Key, [], List, Acc) ->
+    lists:reverse(Acc, List).
+
+multi_set_path_scalar(Key, Value, [Elem | Tail], Acc) ->
+    NewAcc = [lists:keyreplace(Key, 1, Elem, {Key, Value}) | Acc],
+    multi_set_path_scalar(Key, Value, Tail, NewAcc);
+multi_set_path_scalar(_Key, _Value, [], Acc) ->
+    lists:reverse(Acc).
+
+
 
 
 %% @doc Adds a property to the <code>List</code> with the corresponding
