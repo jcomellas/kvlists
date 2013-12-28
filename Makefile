@@ -21,7 +21,7 @@ configure:
 	@rebar get-deps compile
 
 console:
-	$(ERL) -sname $(PROJECT) $(EPATH) -config app
+	$(ERL) -sname $(PROJECT) $(EPATH)
 
 deps:
 	@rebar get-deps update-deps
