@@ -12,6 +12,8 @@
 -export([get_value/2, get_value/3]).
 -export([get_path/2]).
 -export([member/2]).
+-export([set_nth/3]).
+-export([set_path/3]).
 -export([set_value/3]).
 
 -export_type([key/0, kv/0, kvlist/0, path/0, value/0]).
@@ -41,7 +43,14 @@ get_value(Key, List) ->
 %%
 %% @see get_value/2
 %% @see set_value/3
--spec get_value(Key :: key(), List :: kvlist(), Default :: value()) -> value().
+-spec get_value(Key :: path_key(), List :: kvlist(), Default :: value()) -> value().
+get_value(Key, List, Default) when is_integer(Key) ->
+    %% Integer (1-based position) keys.
+    try lists:nth(Key, List) of
+        Value -> Value
+    catch
+        _:_   -> Default
+    end;
 get_value(Key, List, Default) ->
     case lists:keyfind(Key, 1, List) of
         {Key, Value} -> Value;
@@ -56,44 +65,44 @@ get_value(Key, List, Default) ->
 -spec get_path(Path :: path(), List :: kvlist()) -> value().
 get_path([Key | Tail], [Elem | _] = List) when is_integer(Key); is_tuple(Elem) ->
     %% Lookups on lists of key-value pairs.
-    path_key(Key, fun (Value) -> get_path(Tail, Value) end, List);
+    get_path_value(Key, fun (Value) -> get_path(Tail, Value) end, List);
 get_path([Key | Tail], [Elem | _] = List) when is_list(Elem) ->
     %% Lookups on lists of lists of key-value pairs.
-    get_path(Tail, path_filter(Key, List));
+    get_path(Tail, filter_path(Key, List));
 get_path(Key, List) when not is_list(Key) ->
     %% Scalar key lookups.
-    path_key(Key, fun (Value) -> Value end, List);
+    get_path_value(Key, fun (Value) -> Value end, List);
 get_path([], List) ->
     List;
 get_path([_ | _], _List) ->
     [].
 
-path_key(Key, Fun, List) when is_integer(Key) ->
+get_path_value(Key, Fun, List) when is_integer(Key) ->
     %% Integer (1-based position) keys.
     try lists:nth(Key, List) of
         Value -> Fun(Value)
     catch
         _:_   -> []
     end;
-path_key(Key, Fun, List) ->
+get_path_value(Key, Fun, List) ->
     %% Named (atom/binary) keys.
     case lists:keyfind(Key, 1, List) of
         {Key, Value} -> Fun(Value);
         false        -> []
     end.
 
-path_filter(Key, List) ->
-    path_filter(Key, List, []).
+filter_path(Key, List) ->
+    filter_path(Key, List, []).
 
-path_filter(Key, [List | Tail], Acc) when is_list(List) ->
+filter_path(Key, [List | Tail], Acc) when is_list(List) ->
     NewAcc = case lists:keyfind(Key, 1, List) of
                  {Key, Value} -> [Value | Acc];
                  false        -> Acc
              end,
-    path_filter(Key, Tail, NewAcc);
-path_filter(Key, [_Elem | Tail], Acc) ->
-    path_filter(Key, Tail, Acc);
-path_filter(_Key, [], Acc) ->
+    filter_path(Key, Tail, NewAcc);
+filter_path(Key, [_Elem | Tail], Acc) ->
+    filter_path(Key, Tail, Acc);
+filter_path(_Key, [], Acc) ->
     lists:reverse(Acc).
 
 
@@ -104,11 +113,48 @@ member(Key, List) ->
     lists:keymember(Key, 1, List).
 
 
+-spec set_nth(N :: non_neg_integer(), Value :: value(), List :: kvlist()) -> kvlist().
+set_nth(N, Value, List) when is_integer(N), N > 0, is_list(List) ->
+    set_nth(N, Value, List, []).
+
+set_nth(N, Value, List, Acc) when N > 1 ->
+    [Head | Tail] = case List of
+                        [_ | _] -> List;
+                        []      -> [undefined | []]
+                    end,
+    set_nth(N - 1, Value, Tail, [Head | Acc]);
+set_nth(1, Value, [_Head | Tail], Acc) ->
+    lists:reverse([Value | Acc], Tail);
+set_nth(1, Value, [], Acc) ->
+    lists:reverse([Value | Acc]).
+
+
+-spec set_path(Path :: path(), Value :: value(), List :: kvlist()) -> kvlist().
+set_path([Key], Value, List) ->
+    set_path(Key, Value, List);
+set_path([Key | Tail], Value, List) ->
+    Elem = case get_path(Key, List) of
+               Elem1 when is_list(Elem1) -> Elem1;
+               _                         -> []
+           end,
+    set_value(Key, set_path(Tail, Value, Elem), List);
+set_path(Key, Value, List) ->
+    if
+        is_list(List)   -> set_value(Key, Value, List);
+        is_integer(Key) -> set_nth(Key, Value, []);
+        true            -> [{Key, Value}]
+    end.
+
+
 %% @doc Adds a property to the <code>List</code> with the corresponding
 %% <code>Key</code> and <code>Value</code>.
 %%
 %% @see get_value/2
 %% @see get_value/3
--spec set_value(Key :: key(), Value :: value(), List :: kvlist()) -> kvlist().
+-spec set_value(Key :: path_key(), Value :: value(), List :: kvlist()) -> kvlist().
+set_value(Key, Value, List) when is_integer(Key) ->
+    %% Integer (1-based position) keys.
+    set_nth(Key, Value, List);
 set_value(Key, Value, List) ->
+    %% Named (atom/binary) keys.
     lists:keystore(Key, 1, List, {Key, Value}).
