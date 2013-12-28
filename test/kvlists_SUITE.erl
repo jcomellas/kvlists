@@ -44,6 +44,7 @@ groups() ->
        t_delete,
        t_get_value,
        t_get_path,
+       t_member,
        t_set_value
       ]}
      ].
@@ -145,6 +146,27 @@ t_get_path(_Config) ->
     negative          = kvlists:get_path([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, 2, <<"type">>], BinList),
     1                 = kvlists:get_path([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, 3, <<"percent">>], BinList),
     <<"active">>      = kvlists:get_path([<<"status">>, <<"site_status">>], BinList).
+
+
+t_member(_Config) ->
+    false = kvlists:member(abc, []),
+    false = kvlists:member(<<"abc">>, []),
+    false = kvlists:member(abc, [{<<"abc">>, 123}]),
+    false = kvlists:member(<<"abc">>, [{abc, 123}]),
+    true = kvlists:member(abc, [{abc, 123}]),
+    true = kvlists:member(<<"abc">>, [{<<"abc">>, 123}]),
+    AtomList = [{abc, 123}, {def, 456}, {ghi, 789}],
+    true = kvlists:member(abc, AtomList),
+    true = kvlists:member(def, AtomList),
+    true = kvlists:member(ghi, AtomList),
+    false = kvlists:member(<<"abc">>, AtomList),
+    false = kvlists:member(jkl, AtomList),
+    BinList = [{<<"abc">>, 123}, {<<"def">>, 456}, {<<"ghi">>, 789}],
+    true = kvlists:member(<<"abc">>, BinList),
+    true = kvlists:member(<<"def">>, BinList),
+    true = kvlists:member(<<"ghi">>, BinList),
+    false = kvlists:member(abc, BinList),
+    false = kvlists:member(<<"jkl">>, BinList).
 
 
 t_set_value(_Config) ->

@@ -11,6 +11,7 @@
 -export([delete/2]).
 -export([get_value/2, get_value/3]).
 -export([get_path/2]).
+-export([member/2]).
 -export([set_value/3]).
 
 -export_type([key/0, kv/0, kvlist/0, path/0, value/0]).
@@ -94,6 +95,13 @@ path_filter(Key, [_Elem | Tail], Acc) ->
     path_filter(Key, Tail, Acc);
 path_filter(_Key, [], Acc) ->
     lists:reverse(Acc).
+
+
+%% @doc Returns <code>true</code> if there is an entry in <code>List</code>
+%% whose key is equal to <code>Key</code>, otherwise <code>false</code>.
+-spec member(Key :: key(), List :: kvlist()) -> boolean().
+member(Key, List) ->
+    lists:keymember(Key, 1, List).
 
 
 %% @doc Adds a property to the <code>List</code> with the corresponding
