@@ -158,7 +158,6 @@ multi_set_path(Key, Value, List) when is_list(Value) ->
 multi_set_path(Key, Value, List) ->
     multi_set_path_scalar(Key, Value, List, []).
 
-
 multi_set_path_list(Key, [Value | ValueTail], [Elem | ElemTail], Acc) ->
     NewAcc = [lists:keyreplace(Key, 1, Elem, {Key, Value}) | Acc],
     multi_set_path_list(Key, ValueTail, ElemTail, NewAcc);
@@ -172,8 +171,6 @@ multi_set_path_scalar(Key, Value, [Elem | Tail], Acc) ->
     multi_set_path_scalar(Key, Value, Tail, NewAcc);
 multi_set_path_scalar(_Key, _Value, [], Acc) ->
     lists:reverse(Acc).
-
-
 
 
 %% @doc Adds a property to the <code>List</code> with the corresponding
