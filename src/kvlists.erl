@@ -11,6 +11,7 @@
 -export([delete/2]).
 -export([get_value/2, get_value/3]).
 -export([get_path/2]).
+-export([get_path/3]).
 -export([member/2]).
 -export([set_nth/3]).
 -export([set_path/3]).
@@ -61,7 +62,8 @@ get_value(Key, List, Default) ->
 %% @doc Performs the lookup of a <code>Path</code> (list of keys) over a nested
 %% <code>List</code> of key/value pairs. Each <code>path_key()</code> can
 %% either be a name (<code>atom()</code> or <code>binary()</code>) or a
-%% positive integer (using 1-based indexing).
+%% positive integer (using 1-based indexing). If no value is found corresponding
+%% to the <code>Path</code> then <code>[]</code> is returned.
 -spec get_path(Path :: path(), List :: kvlist()) -> value().
 get_path([Key | Tail], [Elem | _] = List) when is_integer(Key); is_tuple(Elem) ->
     %% Lookups on lists of key/value pairs.
