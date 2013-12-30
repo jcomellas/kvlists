@@ -63,10 +63,12 @@ The `kvlists` module also provides the following functions:
 
 ### delete/2
 Deletes all entries associated with `Key` from `List`.
+
+#### Specification
 ```erlang
 -spec delete(Key :: key(), List :: kvlist()) -> kvlist().
 ```
-Example:
+#### Example
 ```erlang
 1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
 2> kvlists:delete(def, List).
@@ -74,10 +76,12 @@ Example:
 ```
 ### get_value/2
 Equivalent to `get_value(Key, List, undefined)`.
+
+#### Specification
 ```erlang
 -spec get_value(Key :: key(), List :: kvlist()) -> value() | undefined.
 ```
-Example:
+#### Example
 ```erlang
 1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
 2> kvlists:get_value(ghi, List).
@@ -90,10 +94,12 @@ undefined
 Returns the value of a simple key/value property in `List`. If the `Key` is
 found in the list, this function returns the corresponding `Value`, otherwise
 `Default` is returned.
+
+#### Specification
 ```erlang
 -spec get_value(Key :: path_key(), List :: kvlist(), Default :: value()) -> value().
 ```
-Example:
+#### Example
 ```erlang
 1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
 2> kvlists:get_value(ghi, List, 100).
@@ -107,10 +113,12 @@ Performs the lookup of a `Path` (list of nested keys) over a nested `List` of
 key/value pairs. Each key in the `Path` can either be a name (`atom()` or
 `binary()`) or a positive integer (using 1-based indexing). If no value is
 found corresponding to the `Path` then `[]` is returned.
+
+#### Specification
 ```erlang
 -spec get_path(Path :: path(), List :: kvlist()) -> value().
 ```
-Examples:
+#### Examples
 
 Given:
 ```erlang
@@ -166,10 +174,12 @@ of a list:
 ### member/2
 Returns `true` if there is an entry in `List` whose key is equal to `Key`,
 otherwise `false`.
+
+#### Specification
 ```erlang
 -spec member(Key :: key(), List :: kvlist()) -> boolean().
 ```
-Example:
+#### Example
 ```erlang
 1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
 2> kvlists:member(ghi, List).
@@ -181,10 +191,12 @@ false
 Assigns a `Value` to the element in a `List` of key/value pairs corresponding to
 the `Key` that was passed. The `Key` can be a sequence of names (`atom()` or
 `binary()`) or indexes (1-based).
+
+#### Specification
 ```erlang
 -spec set_path(Path :: path(), Value :: value(), List :: kvlist()) -> kvlist().
 ```
-Examples:
+#### Examples
 
 Given:
 ```erlang
@@ -245,10 +257,12 @@ Set multiple entries in a list with a multiple values:
 
 ### set_value/3
 Adds a property to the `List` with the corresponding `Key` and `Value`.
+
+#### Specification
 ```erlang
 -spec set_value(Key :: path_key(), Value :: value(), List :: kvlist()) -> kvlist().
 ```
-Example:
+#### Example
 ```erlang
 1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
 2> kvlists:set_value(def, 200, List).
