@@ -11,7 +11,6 @@
 -export([delete/2]).
 -export([get_value/2, get_value/3]).
 -export([get_path/2]).
--export([get_path/3]).
 -export([member/2]).
 -export([set_nth/3]).
 -export([set_path/3]).
