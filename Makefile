@@ -30,6 +30,9 @@ doc:
 	@rebar skip_deps=true doc
 
 clean:
+	@rm test/*.beam
+	@rm erl_crash.dump
+	@rm -fR logs
 	@rebar skip_deps=true clean
 
 depclean:
