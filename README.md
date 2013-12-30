@@ -1,4 +1,4 @@
-# kvlists -- Lists of key-value pairs in Erlang
+# kvlists
 
 ## Overview
 
@@ -105,7 +105,8 @@ Example:
 ### get_path/2
 Performs the lookup of a `Path` (list of nested keys) over a nested `List` of
 key/value pairs. Each key in the `Path` can either be a name (`atom()` or
-`binary()`) or a positive integer (using 1-based indexing).
+`binary()`) or a positive integer (using 1-based indexing). If no value is
+found corresponding to the `Path` then `[]` is returned.
 ```erlang
 -spec get_path(Path :: path(), List :: kvlist()) -> value().
 ```
@@ -130,7 +131,7 @@ Retrieve a key with a single (scalar) value:
 Retrieve a non-existent key:
 ```erlang
 3> kvlists:get_path(invalid_key, List).
-undefined
+[]
 ```
 Retrieve a nested key with a list of key/value pair lists:
 ```erlang
