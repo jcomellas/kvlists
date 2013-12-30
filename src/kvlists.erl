@@ -64,6 +64,8 @@ get_value(Key, List, Default) ->
 %% either be a name (<code>atom()</code> or <code>binary()</code>) or a
 %% positive integer (using 1-based indexing). If no value is found corresponding
 %% to the <code>Path</code> then <code>[]</code> is returned.
+%%
+%% @see set_path/3
 -spec get_path(Path :: path(), List :: kvlist()) -> value().
 get_path([Key | Tail], [Elem | _] = List) when is_integer(Key); is_tuple(Elem) ->
     %% Lookups on lists of key/value pairs.
@@ -131,7 +133,12 @@ set_nth(1, Value, [], Acc) ->
     lists:reverse([Value | Acc]).
 
 
-%% @doc Assigns a value
+%% @doc Assigns a <code>Value</code> to the element in a <code>List</code> of
+%% key/value pairs corresponding to the <code>Key</code> that was passed. The
+%% <code>Key</code> can be a sequence of names (<code>atom()</code> or
+%% <code>binary()</code>) or indexes (1-based).
+%%
+%% @see get_path/2
 -spec set_path(Path :: path(), Value :: value(), List :: kvlist()) -> kvlist().
 set_path([Key], Value, List) ->
     set_path(Key, Value, List);
