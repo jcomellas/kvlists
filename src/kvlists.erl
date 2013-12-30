@@ -2,7 +2,7 @@
 %%% @author Juan Jose Comellas <juanjo@comellas.org>
 %%% @copyright (C) 2013 Juan Jose Comellas
 %%% @doc
-%%% Convenience functions for lists of key-value pairs.
+%%% Convenience functions for lists of key/value pairs.
 %%% @end
 %%%-------------------------------------------------------------------
 -module(kvlists).
@@ -33,7 +33,7 @@ delete(Key, List) ->
 
 
 %% @equiv get_value(Key, List, undefined)
--spec get_value(Key :: key(), List :: kvlist()) -> value() | undefined.
+-spec get_value(Key :: path_key(), List :: kvlist()) -> value() | undefined.
 get_value(Key, List) ->
     get_value(Key, List, undefined).
 
@@ -61,13 +61,13 @@ get_value(Key, List, Default) ->
 %% @doc Performs the lookup of a <code>Path</code> (list of keys) over a nested
 %% <code>List</code> of key/value pairs. Each <code>path_key()</code> can
 %% either be a name (<code>atom()</code> or <code>binary()</code>) or a
-%% positive integer (with 1-based indexing).
+%% positive integer (using 1-based indexing).
 -spec get_path(Path :: path(), List :: kvlist()) -> value().
 get_path([Key | Tail], [Elem | _] = List) when is_integer(Key); is_tuple(Elem) ->
-    %% Lookups on lists of key-value pairs.
+    %% Lookups on lists of key/value pairs.
     get_path_value(Key, fun (Value) -> get_path(Tail, Value) end, List);
 get_path([Key | Tail], [Elem | _] = List) when is_list(Elem) ->
-    %% Lookups on lists of lists of key-value pairs.
+    %% Lookups on lists of lists of key/value pairs.
     get_path(Tail, multi_get_path(Key, List));
 get_path(Key, List) when not is_list(Key) ->
     %% Scalar key lookups.
@@ -129,6 +129,7 @@ set_nth(1, Value, [], Acc) ->
     lists:reverse([Value | Acc]).
 
 
+%% @doc Assigns a value
 -spec set_path(Path :: path(), Value :: value(), List :: kvlist()) -> kvlist().
 set_path([Key], Value, List) ->
     set_path(Key, Value, List);
