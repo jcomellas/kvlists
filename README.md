@@ -47,7 +47,7 @@ This application has been lightly tested so far and is still in a development
 stage. It has a test suite that covers most of the functionality but it has not
 been used in production yet.
 
-## Usage
+## Type Specifications
 
 The type specifications exported by the module are:
 ```erlang
@@ -59,7 +59,18 @@ The type specifications exported by the module are:
 -type path()      :: [path_key()] | path_key().
 ```
 
+## Functions
+
 The `kvlists` module also provides the following functions:
+
+  * [delete/2](#delete2)
+  * [get_value/2](#get_value2)
+  * [get_value/3](#get_value3)
+  * [get_path/2](#get_path2)
+  * [member/2](#member2)
+  * [set_path/3](#set_path3)
+  * [set_value/3](#set_value3)
+
 
 ### delete/2
 Deletes all entries associated with `Key` from `List`.
@@ -189,7 +200,7 @@ false
 ```
 ### set_path/3
 Assigns a `Value` to the element in a `List` of key/value pairs corresponding to
-the `Key` that was passed. The `Key` can be a sequence of names (`atom()` or
+the `Path` that was passed. The `Path` can be a sequence of names (`atom()` or
 `binary()`) or indexes (1-based).
 
 #### Specification
