@@ -87,21 +87,6 @@ Deletes all entries associated with `Key` from `List`.
 2> kvlists:delete(def, List).
 [{abc,123},{ghi,789}]
 ```
-### get_value/2
-Equivalent to `get_value(Key, List, undefined)`.
-
-#### Specification
-```erlang
--spec get_value(Key :: key(), List :: kvlist()) -> value() | undefined.
-```
-#### Example
-```erlang
-1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
-2> kvlists:get_value(ghi, List).
-789
-3> kvlists:get_value(jkl, List).
-undefined
-```
 
 ### get_path/2
 Performs the lookup of a `Path` (list of nested keys) over a nested `List` of
@@ -164,6 +149,22 @@ of a list:
 ```erlang
 8>  kvlists:get_path([transactions, ratings, type], List).
 [positive,negative,neutral]
+```
+
+### get_value/2
+Equivalent to `get_value(Key, List, undefined)`.
+
+#### Specification
+```erlang
+-spec get_value(Key :: key(), List :: kvlist()) -> value() | undefined.
+```
+#### Example
+```erlang
+1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
+2> kvlists:get_value(ghi, List).
+789
+3> kvlists:get_value(jkl, List).
+undefined
 ```
 
 ### get_value/3
