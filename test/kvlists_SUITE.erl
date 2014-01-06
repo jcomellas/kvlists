@@ -42,11 +42,13 @@ groups() ->
     [{kvlists, [parallel],
       [
        t_delete,
-       t_get_value,
        t_get_path,
+       t_get_value,
+       t_get_values,
        t_member,
        t_set_path,
-       t_set_value
+       t_set_value,
+       t_set_values
       ]}
      ].
 
@@ -67,25 +69,6 @@ t_delete(_Config) ->
     [{<<"def">>, 456}, {<<"ghi">>, 789}] = kvlists:delete(<<"abc">>, BinList),
     [{<<"abc">>, 123}, {<<"ghi">>, 789}] = kvlists:delete(<<"def">>, BinList),
     [{<<"abc">>, 123}, {<<"def">>, 456}] = kvlists:delete(<<"ghi">>, BinList).
-
-
-t_get_value(_Config) ->
-    undefined = kvlists:get_value(abc, []),
-    undefined = kvlists:get_value(<<"abc">>, []),
-    AtomList = [{abc, 123}, {def, 456}, {ghi, 789}],
-    123 = kvlists:get_value(abc, AtomList),
-    {abc, 123} = kvlists:get_value(1, AtomList),
-    456 = kvlists:get_value(def, AtomList),
-    {def, 456} = kvlists:get_value(2, AtomList),
-    789 = kvlists:get_value(ghi, AtomList),
-    {ghi, 789} = kvlists:get_value(3, AtomList),
-    BinList = [{<<"abc">>, "123"}, {<<"def">>, "456"}, {<<"ghi">>, "789"}],
-    "123" = kvlists:get_value(<<"abc">>, BinList),
-    {<<"abc">>, "123"} = kvlists:get_value(1, BinList),
-    "456" = kvlists:get_value(<<"def">>, BinList),
-    {<<"def">>, "456"} = kvlists:get_value(2, BinList),
-    "789" = kvlists:get_value(<<"ghi">>, BinList),
-    {<<"ghi">>, "789"} = kvlists:get_value(3, BinList).
 
 
 t_get_path(_Config) ->
@@ -153,6 +136,51 @@ t_get_path(_Config) ->
     negative          = kvlists:get_path([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, 2, <<"type">>], BinList),
     1                 = kvlists:get_path([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, 3, <<"percent">>], BinList),
     <<"active">>      = kvlists:get_path([<<"status">>, <<"site_status">>], BinList).
+
+
+t_get_value(_Config) ->
+    undefined = kvlists:get_value(abc, []),
+    undefined = kvlists:get_value(<<"abc">>, []),
+    AtomList = [{abc, 123}, {def, 456}, {ghi, 789}],
+    123 = kvlists:get_value(abc, AtomList),
+    {abc, 123} = kvlists:get_value(1, AtomList),
+    456 = kvlists:get_value(def, AtomList),
+    {def, 456} = kvlists:get_value(2, AtomList),
+    789 = kvlists:get_value(ghi, AtomList),
+    {ghi, 789} = kvlists:get_value(3, AtomList),
+    BinList = [{<<"abc">>, "123"}, {<<"def">>, "456"}, {<<"ghi">>, "789"}],
+    "123" = kvlists:get_value(<<"abc">>, BinList),
+    {<<"abc">>, "123"} = kvlists:get_value(1, BinList),
+    "456" = kvlists:get_value(<<"def">>, BinList),
+    {<<"def">>, "456"} = kvlists:get_value(2, BinList),
+    "789" = kvlists:get_value(<<"ghi">>, BinList),
+    {<<"ghi">>, "789"} = kvlists:get_value(3, BinList).
+
+
+t_get_values(_Config) ->
+    AtomList = [{abc, 123}, {def, 456}, {ghi, 789}],
+    [] = kvlists:get_values([], AtomList),
+    [undefined] = kvlists:get_values([jkl], AtomList),
+    [100] = kvlists:get_values([{jkl, 100}], AtomList),
+    [123] = kvlists:get_values([abc], AtomList),
+    [{abc, 123}] = kvlists:get_values([1], AtomList),
+    [456] = kvlists:get_values([def], AtomList),
+    [{def, 456}] = kvlists:get_values([2], AtomList),
+    [789] = kvlists:get_values([ghi], AtomList),
+    [{ghi, 789}] = kvlists:get_values([3], AtomList),
+    [123, 456, 789, 200] = kvlists:get_values([abc, {def, 100}, ghi, {jkl, 200}], AtomList),
+    BinList = [{<<"abc">>, "123"}, {<<"def">>, "456"}, {<<"ghi">>, "789"}],
+    [] = kvlists:get_values([], BinList),
+    [undefined] = kvlists:get_values([<<"jkl">>], BinList),
+    ["100"] = kvlists:get_values([{<<"jkl">>, "100"}], BinList),
+    ["123"] = kvlists:get_values([<<"abc">>], BinList),
+    [{<<"abc">>, "123"}] = kvlists:get_values([1], BinList),
+    ["456"] = kvlists:get_values([<<"def">>], BinList),
+    [{<<"def">>, "456"}] = kvlists:get_values([2], BinList),
+    ["789"] = kvlists:get_values([<<"ghi">>], BinList),
+    [{<<"ghi">>, "789"}] = kvlists:get_values([3], BinList),
+    ["123", "456", "789", "200"] = kvlists:get_values([<<"abc">>, {<<"def">>, "100"},
+                                                       <<"ghi">>, {<<"jkl">>, "200"}], BinList).
 
 
 t_member(_Config) ->
@@ -286,3 +314,24 @@ t_set_value(_Config) ->
     [{<<"abc">>, 123}, {<<"def">>, 456}, {<<"ghi">>, 300}] = kvlists:set_value(<<"ghi">>, 300, BinList),
     [{<<"abc">>, 123}, {<<"def">>, 456}, {<<"ghi">>, 300}] = kvlists:set_value(3, {<<"ghi">>, 300}, BinList),
     [{<<"abc">>, 123}, {<<"def">>, 456}, {<<"ghi">>, 789}, {<<"jkl">>, jkl}] = kvlists:set_value(<<"jkl">>, jkl, BinList).
+
+
+t_set_values(_Config) ->
+    [{abc, 123}] = kvlists:set_values([], [{abc, 123}]),
+    [{abc, 100}] = kvlists:set_values([{abc, 100}], [{abc, 123}]),
+    AtomList = [{abc, 123}, {def, 456}, {ghi, 789}],
+    [{abc, 100}, {def, 456}, {ghi, 789}] = kvlists:set_values([{abc, 100}], AtomList),
+    [{abc, 100}, {def, 456}, {ghi, 789}] = kvlists:set_values([{1, {abc, 100}}], AtomList),
+    [{abc, 123}, {def, 200}, {ghi, 789}] = kvlists:set_values([{def, 200}], AtomList),
+    [{abc, 123}, {def, 200}, {ghi, 789}] = kvlists:set_values([{2, {def, 200}}], AtomList),
+    [{abc, 123}, {def, 456}, {ghi, 300}] = kvlists:set_values([{ghi, 300}], AtomList),
+    [{abc, 123}, {def, 456}, {ghi, 300}] = kvlists:set_values([{3, {ghi, 300}}], AtomList),
+    [{abc, 100}, {def, 456}, {ghi, 789}, {jkl, <<"JKL">>}] = kvlists:set_values([{abc, 100}, {jkl, <<"JKL">>}], AtomList),
+    BinList = [{<<"abc">>, 123}, {<<"def">>, 456}, {<<"ghi">>, 789}],
+    [{<<"abc">>, 100}, {<<"def">>, 456}, {<<"ghi">>, 789}] = kvlists:set_values([{<<"abc">>, 100}], BinList),
+    [{<<"abc">>, 100}, {<<"def">>, 456}, {<<"ghi">>, 789}] = kvlists:set_values([{1, {<<"abc">>, 100}}], BinList),
+    [{<<"abc">>, 123}, {<<"def">>, 200}, {<<"ghi">>, 789}] = kvlists:set_values([{<<"def">>, 200}], BinList),
+    [{<<"abc">>, 123}, {<<"def">>, 200}, {<<"ghi">>, 789}] = kvlists:set_values([{2, {<<"def">>, 200}}], BinList),
+    [{<<"abc">>, 123}, {<<"def">>, 456}, {<<"ghi">>, 300}] = kvlists:set_values([{<<"ghi">>, 300}], BinList),
+    [{<<"abc">>, 123}, {<<"def">>, 456}, {<<"ghi">>, 300}] = kvlists:set_values([{3, {<<"ghi">>, 300}}], BinList),
+    [{<<"abc">>, 100}, {<<"def">>, 456}, {<<"ghi">>, 789}, {<<"jkl">>, 'JKL'}] = kvlists:set_values([{<<"abc">>, 100}, {<<"jkl">>, 'JKL'}], BinList).

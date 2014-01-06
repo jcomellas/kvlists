@@ -64,12 +64,14 @@ The type specifications exported by the module are:
 The `kvlists` module also provides the following functions:
 
   * [delete/2](#delete2)
+  * [get_path/2](#get_path2)
   * [get_value/2](#get_value2)
   * [get_value/3](#get_value3)
-  * [get_path/2](#get_path2)
+  * [get_values/2](#get_values2)
   * [member/2](#member2)
   * [set_path/3](#set_path3)
   * [set_value/3](#set_value3)
+  * [set_values/2](#set_values2)
 
 
 ### delete/2
@@ -99,24 +101,6 @@ Equivalent to `get_value(Key, List, undefined)`.
 789
 3> kvlists:get_value(jkl, List).
 undefined
-```
-
-### get_value/3
-Returns the value of a simple key/value property in `List`. If the `Key` is
-found in the list, this function returns the corresponding `Value`, otherwise
-`Default` is returned.
-
-#### Specification
-```erlang
--spec get_value(Key :: path_key(), List :: kvlist(), Default :: value()) -> value().
-```
-#### Example
-```erlang
-1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
-2> kvlists:get_value(ghi, List, 100).
-789
-3> kvlists:get_value(jkl, List, 100).
-100
 ```
 
 ### get_path/2
@@ -180,6 +164,46 @@ of a list:
 ```erlang
 8>  kvlists:get_path([transactions, ratings, type], List).
 [positive,negative,neutral]
+```
+
+### get_value/3
+Returns the value of a simple key/value property in `List`. If the `Key` is
+found in the list, this function returns the corresponding `Value`, otherwise
+`Default` is returned.
+
+#### Specification
+```erlang
+-spec get_value(Key :: path_key(), List :: kvlist(), Default :: value()) -> value().
+```
+#### Example
+```erlang
+1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
+2> kvlists:get_value(ghi, List, 100).
+789
+3> kvlists:get_value(jkl, List, 100).
+100
+```
+
+### get_values/2
+Returns the list of values corresponding to the different `Keys` in `List`.
+If the entry in `Keys` is found in the `List`, this function returns the
+corresponding value. If the entry is not found and it's a `{Key, Default}`
+tuple, `Default` is added to the returned list in its place and if the entry
+is just a key, then `undefined` is added to the returned list.
+
+#### Specification
+```erlang
+-spec get_values([Key :: path_key() | {Key :: path_key(), Default :: value()}],
+                 List :: kvlist()) -> Values :: [value()].
+```
+#### Example
+```erlang
+1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
+2> kvlists:get_values([ghi], List).
+[789]
+3> kvlists:get_values([abc, {def, 100}, ghi, {jkl, 200}], List).
+[123, 456, 789,
+200]
 ```
 
 ### member/2
@@ -278,4 +302,19 @@ Adds a property to the `List` with the corresponding `Key` and `Value`.
 1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
 2> kvlists:set_value(def, 200, List).
 [{abc, 123}, {def, 200}, {ghi, 789}]
+```
+
+### set_values/2
+Sets each `Key` in `List` to its corresponding `Value`.
+
+#### Specification
+```erlang
+-spec set_values([{Key :: path_key(), Value :: value()}], List :: kvlist()) ->
+                        NewList :: kvlist().
+```
+#### Example
+```erlang
+1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
+2> kvlists:set_values([{abc, 100}, {jkl, <<"JKL">>}], List).
+[{abc, 100}, {def, 456}, {ghi, 789}, {jkl, <<"JKL">>}]
 ```

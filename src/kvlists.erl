@@ -10,11 +10,13 @@
 
 -export([delete/2]).
 -export([get_value/2, get_value/3]).
+-export([get_values/2]).
 -export([get_path/2]).
 -export([member/2]).
 -export([set_nth/3]).
 -export([set_path/3]).
 -export([set_value/3]).
+-export([set_values/2]).
 
 -export_type([key/0, kv/0, kvlist/0, path/0, value/0]).
 
@@ -32,30 +34,15 @@ delete(Key, List) ->
     lists:keydelete(Key, 1, List).
 
 
-%% @equiv get_value(Key, List, undefined)
--spec get_value(Key :: path_key(), List :: kvlist()) -> value() | undefined.
-get_value(Key, List) ->
-    get_value(Key, List, undefined).
+%% diff(List1 :: kvlist(), List2 :: kvlist()) -> [{add | delete | update, {path(), value()}}].
+%% diff(List1, List2) ->
+%%     diff(lists:keysort(1, List1), lists:keysort(1, List2), []).
 
-%% @doc Returns the value of a simple key/value property in <code>List</code>.
-%% If the <code>Key</code> is found in the list, this function returns the
-%% corresponding <code>Value</code>, otherwise <code>Default</code> is returned.
-%%
-%% @see get_value/2
-%% @see set_value/3
--spec get_value(Key :: path_key(), List :: kvlist(), Default :: value()) -> value().
-get_value(Key, List, Default) when is_integer(Key) ->
-    %% Integer (1-based position) keys.
-    try lists:nth(Key, List) of
-        Value -> Value
-    catch
-        _:_   -> Default
-    end;
-get_value(Key, List, Default) ->
-    case lists:keyfind(Key, 1, List) of
-        {Key, Value} -> Value;
-        false        -> Default
-    end.
+%% diff([{Key, Value} | Tail1], [{Key, Value} | Tail2], Path) when not is_list(Value) ->
+%%     diff(Tail1, Tail2, [Key | Path]);
+%% diff() ->
+
+
 
 
 %% @doc Performs the lookup of a <code>Path</code> (list of keys) over a nested
@@ -106,6 +93,54 @@ multi_get_path(Key, [List | Tail], Acc) when is_list(List) ->
 multi_get_path(Key, [_Elem | Tail], Acc) ->
     multi_get_path(Key, Tail, Acc);
 multi_get_path(_Key, [], Acc) ->
+    lists:reverse(Acc).
+
+
+%% @equiv get_value(Key, List, undefined)
+-spec get_value(Key :: path_key(), List :: kvlist()) -> value() | undefined.
+get_value(Key, List) ->
+    get_value(Key, List, undefined).
+
+%% @doc Returns the value of a simple key/value property in <code>List</code>.
+%% If the <code>Key</code> is found in the list, this function returns the
+%% corresponding <code>Value</code>, otherwise <code>Default</code> is returned.
+%%
+%% @see get_value/2
+%% @see set_value/3
+-spec get_value(Key :: path_key(), List :: kvlist(), Default :: value()) -> value().
+get_value(Key, List, Default) when is_integer(Key) ->
+    %% Integer (1-based position) keys.
+    try lists:nth(Key, List) of
+        Value -> Value
+    catch
+        _:_   -> Default
+    end;
+get_value(Key, List, Default) ->
+    case lists:keyfind(Key, 1, List) of
+        {Key, Value} -> Value;
+        false        -> Default
+    end.
+
+
+%% @doc Returns the list of values corresponding to the different <code>Keys</code>
+%% in <code>List</code>. If the entry in <code>Keys</code> is found in the
+%% <code>List</code>, this function returns the corresponding value. If the
+%% entry is not found and it's a <code>{Key, Default}</code> tuple,
+%% <code>Default</code> is added to the returned list in its place and if the
+%% entry is just a key, then <code>undefined</code> is added to the returned list.
+%%
+%% @see get_value/2
+%% @see set_values/2
+-spec get_values([Key :: path_key() | {Key :: path_key(), Default :: value()}],
+                 List :: kvlist()) -> Values :: [value()].
+get_values(Keys, List) ->
+    get_values(Keys, List, []).
+
+get_values([{Key, Default} | Tail], List, Acc) ->
+    get_values(Tail, List, [get_value(Key, List, Default) | Acc]);
+get_values([Key | Tail], List, Acc) ->
+    get_values(Tail, List, [get_value(Key, List) | Acc]);
+get_values([], _List, Acc) ->
     lists:reverse(Acc).
 
 
@@ -194,3 +229,16 @@ set_value(Key, Value, List) when is_integer(Key) ->
 set_value(Key, Value, List) ->
     %% Named (atom/binary) keys.
     lists:keystore(Key, 1, List, {Key, Value}).
+
+
+%% @doc Sets each <code>Key</code> in <code>List</code> to its corresponding
+%% <code>Value</code>.
+%%
+%% @see get_values/2
+%% @see set_value/3
+-spec set_values([{Key :: path_key(), Value :: value()}], List :: kvlist()) ->
+                        NewList :: kvlist().
+set_values([{Key, Value} | Tail], List) ->
+    set_values(Tail, set_value(Key, Value, List));
+set_values([], List) ->
+    List.
