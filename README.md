@@ -202,8 +202,7 @@ is just a key, then `undefined` is added to the returned list.
 2> kvlists:get_values([ghi], List).
 [789]
 3> kvlists:get_values([abc, {def, 100}, ghi, {jkl, 200}], List).
-[123, 456, 789,
-200]
+[123, 456, 789, 200]
 ```
 
 ### member/2
