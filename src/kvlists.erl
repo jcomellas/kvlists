@@ -24,7 +24,7 @@
 -type value()     :: term().
 -type kv()        :: {key(), value()}.
 -type kvlist()    :: [kv()].
--type path_key()  :: key() | non_neg_integer().
+-type path_key()  :: key() | non_neg_integer() | {key(), value()}.
 -type path()      :: [path_key()] | path_key().
 
 %% @doc Deletes all entries associated with <code>Key</code> from
@@ -58,7 +58,7 @@ get_path([Key | Tail], [Elem | _] = List) when is_integer(Key); is_tuple(Elem) -
     get_path_value(Key, fun (Value) -> get_path(Tail, Value) end, List);
 get_path([Key | Tail], [Elem | _] = List) when is_list(Elem) ->
     %% Lookups on lists of lists of key/value pairs.
-    get_path(Tail, multi_get_path(Key, List));
+    get_path(Tail, get_path_list(Key, List));
 get_path(Key, List) when not is_list(Key) ->
     %% Scalar key lookups.
     get_path_value(Key, fun (Value) -> Value end, List);
@@ -81,18 +81,32 @@ get_path_value(Key, Fun, List) ->
         false        -> []
     end.
 
-multi_get_path(Key, List) ->
-    multi_get_path(Key, List, []).
+get_path_list({_Key, _Value} = PathKey, List) ->
+    get_path_list_key_value(PathKey, List);
+get_path_list(Key, List) ->
+    get_path_list_key(Key, List, []).
 
-multi_get_path(Key, [List | Tail], Acc) when is_list(List) ->
+
+get_path_list_key_value({Key, Value} = PathKey, [List | Tail]) when is_list(List) ->
+    case lists:keyfind(Key, 1, List) of
+        {Key, Value} -> List;
+        _Other       -> get_path_list_key_value(PathKey, Tail)
+    end;
+get_path_list_key_value(PathKey, [_Elem | Tail]) ->
+    get_path_list_key_value(PathKey, Tail);
+get_path_list_key_value(_Key, []) ->
+    [].
+
+
+get_path_list_key(Key, [List | Tail], Acc) when is_list(List) ->
     NewAcc = case lists:keyfind(Key, 1, List) of
                  {Key, Value} -> [Value | Acc];
                  false        -> Acc
              end,
-    multi_get_path(Key, Tail, NewAcc);
-multi_get_path(Key, [_Elem | Tail], Acc) ->
-    multi_get_path(Key, Tail, Acc);
-multi_get_path(_Key, [], Acc) ->
+    get_path_list_key(Key, Tail, NewAcc);
+get_path_list_key(Key, [_Elem | Tail], Acc) ->
+    get_path_list_key(Key, Tail, Acc);
+get_path_list_key(_Key, [], Acc) ->
     lists:reverse(Acc).
 
 
