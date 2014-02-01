@@ -41,7 +41,7 @@ end_per_testcase(_TestCase, _Config) ->
 groups() ->
     [{kvlists, [parallel],
       [
-       t_delete,
+       t_delete_value,
        t_get_path,
        t_get_value,
        t_get_values,
@@ -58,17 +58,17 @@ all() ->
 
 %% Test cases
 
-t_delete(_Config) ->
-    [] = kvlists:delete(abc, []),
-    [] = kvlists:delete(<<"abc">>, []),
+t_delete_value(_Config) ->
+    [] = kvlists:delete_value(abc, []),
+    [] = kvlists:delete_value(<<"abc">>, []),
     AtomList = [{abc, 123}, {def, 456}, {ghi, 789}],
-    [{def, 456}, {ghi, 789}] = kvlists:delete(abc, AtomList),
-    [{abc, 123}, {ghi, 789}] = kvlists:delete(def, AtomList),
-    [{abc, 123}, {def, 456}] = kvlists:delete(ghi, AtomList),
+    [{def, 456}, {ghi, 789}] = kvlists:delete_value(abc, AtomList),
+    [{abc, 123}, {ghi, 789}] = kvlists:delete_value(def, AtomList),
+    [{abc, 123}, {def, 456}] = kvlists:delete_value(ghi, AtomList),
     BinList = [{<<"abc">>, 123}, {<<"def">>, 456}, {<<"ghi">>, 789}],
-    [{<<"def">>, 456}, {<<"ghi">>, 789}] = kvlists:delete(<<"abc">>, BinList),
-    [{<<"abc">>, 123}, {<<"ghi">>, 789}] = kvlists:delete(<<"def">>, BinList),
-    [{<<"abc">>, 123}, {<<"def">>, 456}] = kvlists:delete(<<"ghi">>, BinList).
+    [{<<"def">>, 456}, {<<"ghi">>, 789}] = kvlists:delete_value(<<"abc">>, BinList),
+    [{<<"abc">>, 123}, {<<"ghi">>, 789}] = kvlists:delete_value(<<"def">>, BinList),
+    [{<<"abc">>, 123}, {<<"def">>, 456}] = kvlists:delete_value(<<"ghi">>, BinList).
 
 
 t_get_path(_Config) ->

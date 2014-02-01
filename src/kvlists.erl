@@ -8,7 +8,7 @@
 -module(kvlists).
 -author('Juan Jose Comellas <juanjo@comellas.org>').
 
--export([delete/2]).
+-export([delete_value/2]).
 -export([get_value/2, get_value/3]).
 -export([get_values/2]).
 -export([get_path/2]).
@@ -29,8 +29,8 @@
 
 %% @doc Deletes all entries associated with <code>Key</code> from
 %% <code>List</code>.
--spec delete(Key :: key(), List :: kvlist()) -> kvlist().
-delete(Key, List) ->
+-spec delete_value(Key :: key(), List :: kvlist()) -> kvlist().
+delete_value(Key, List) ->
     lists:keydelete(Key, 1, List).
 
 
