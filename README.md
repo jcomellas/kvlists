@@ -56,12 +56,13 @@ been used in production yet.
 
 The type specifications exported by the module are:
 ```erlang
--type key()       :: atom() | binary().
--type value()     :: term().
--type kv()        :: {key(), value()}.
--type kvlist()    :: [kv()].
--type path_key()  :: key() | non_neg_integer().
--type path()      :: [path_key()] | path_key().
+-type element_id() :: atom() | binary().
+-type key()        :: atom() | binary().
+-type value()      :: term().
+-type kv()         :: {key(), value()}.
+-type kvlist()     :: [kv()].
+-type path_key()   :: key() | non_neg_integer() | {key(), element_id()}.
+-type path()       :: [path_key()] | path_key().
 ```
 
 
