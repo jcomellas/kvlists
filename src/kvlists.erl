@@ -20,12 +20,13 @@
 
 -export_type([key/0, kv/0, kvlist/0, path/0, value/0]).
 
--type key()       :: atom() | binary().
--type value()     :: term().
--type kv()        :: {key(), value()}.
--type kvlist()    :: [kv()].
--type path_key()  :: key() | non_neg_integer() | {key(), value()}.
--type path()      :: [path_key()] | path_key().
+-type element_id() :: atom() | binary().
+-type key()        :: atom() | binary().
+-type value()      :: term().
+-type kv()         :: {key(), value()}.
+-type kvlist()     :: [kv()].
+-type path_key()   :: key() | non_neg_integer() | {key(), element_id()}.
+-type path()       :: [path_key()] | path_key().
 
 %% @doc Deletes all entries associated with <code>Key</code> from
 %% <code>List</code>.
@@ -34,84 +35,78 @@ delete_value(Key, List) ->
     lists:keydelete(Key, 1, List).
 
 
-%% diff(List1 :: kvlist(), List2 :: kvlist()) -> [{add | delete | update, {path(), value()}}].
-%% diff(List1, List2) ->
-%%     diff(lists:keysort(1, List1), lists:keysort(1, List2), []).
-
-%% diff([{Key, Value} | Tail1], [{Key, Value} | Tail2], Path) when not is_list(Value) ->
-%%     diff(Tail1, Tail2, [Key | Path]);
-%% diff() ->
-
-
-
-
 %% @doc Performs the lookup of a <code>Path</code> (list of keys) over a nested
 %% <code>List</code> of key/value pairs. Each <code>path_key()</code> can
-%% either be a name (<code>atom()</code> or <code>binary()</code>) or a
-%% positive integer (using 1-based indexing). If no value is found corresponding
+%% either be a name (<code>atom()</code> or <code>binary()</code>); a
+%% positive integer (using 1-based indexing) or an element identifier
+%% (<code>{Key, ElementId}</code>). If no value is found corresponding
 %% to the <code>Path</code> then <code>[]</code> is returned.
 %%
 %% @see set_path/3
 -spec get_path(Path :: path(), List :: kvlist()) -> value().
-get_path([Key | Tail], [Elem | _] = List) when is_integer(Key); is_tuple(Elem) ->
+get_path([Index | Tail], [Elem | _] = List) when is_integer(Index); is_tuple(Elem) ->
     %% Lookups on lists of key/value pairs.
-    get_path_value(Key, fun (Value) -> get_path(Tail, Value) end, List);
-get_path([Key | Tail], [Elem | _] = List) when is_list(Elem) ->
+    case get_path_value(Index, List) of
+        [_ | _] = Value        -> get_path(Tail, Value);
+        Other when Tail =:= [] -> Other;
+        _                      -> []
+    end;
+get_path([PathKey | Tail], [Elem | _] = List) when is_list(Elem) ->
     %% Lookups on lists of lists of key/value pairs.
-    get_path(Tail, get_path_list(Key, List));
-get_path(Key, List) when not is_list(Key) ->
+    get_path(Tail, get_path_value(PathKey, List));
+get_path(PathKey, List) when not is_list(PathKey) ->
     %% Scalar key lookups.
-    get_path_value(Key, fun (Value) -> Value end, List);
+    get_path_value(PathKey, List);
 get_path([], List) ->
     List;
 get_path([_ | _], _List) ->
     [].
 
-get_path_value(Key, Fun, List) when is_integer(Key) ->
+get_path_value(PathKey, List) when is_integer(PathKey) ->
     %% Integer (1-based position) keys.
-    try lists:nth(Key, List) of
-        Value -> Fun(Value)
+    try lists:nth(PathKey, List) of
+        Value -> Value
     catch
         _:_   -> []
     end;
-get_path_value(Key, Fun, List) ->
+get_path_value({_Key, _ElemId} = PathKey, List) ->
+    get_path_by_element_id(PathKey, List);
+get_path_value(Key, [Elem | _Tail] = List) when is_list(Elem) ->
+    get_path_by_element_key(Key, List);
+get_path_value(Key, List) ->
     %% Named (atom/binary) keys.
     case lists:keyfind(Key, 1, List) of
-        {Key, Value} -> Fun(Value);
+        {Key, Value} -> Value;
         false        -> []
     end.
 
-get_path_list({_Key, _Value} = PathKey, List) ->
-    get_path_list_key_value(PathKey, List);
-get_path_list(Key, List) ->
-    get_path_list_key(Key, List, []).
-
-
-get_path_list_key_value({Key, Value} = PathKey, [List | Tail]) when is_list(List) ->
-    case lists:keyfind(Key, 1, List) of
-        {Key, Value} -> List;
-        _Other       -> get_path_list_key_value(PathKey, Tail)
+get_path_by_element_id({Key, ElemId} = PathKey, [Elem | Tail]) when is_list(Elem) ->
+    case lists:keyfind(Key, 1, Elem) of
+        {Key, ElemId} -> Elem;
+        _Other        -> get_path_by_element_id(PathKey, Tail)
     end;
-get_path_list_key_value(PathKey, [_Elem | Tail]) ->
-    get_path_list_key_value(PathKey, Tail);
-get_path_list_key_value(_Key, []) ->
+get_path_by_element_id(PathKey, [_Elem | Tail]) ->
+    get_path_by_element_id(PathKey, Tail);
+get_path_by_element_id(_PathKey, []) ->
     [].
 
+get_path_by_element_key(Key, List) ->
+    get_path_by_element_key(Key, List, []).
 
-get_path_list_key(Key, [List | Tail], Acc) when is_list(List) ->
+get_path_by_element_key(Key, [List | Tail], Acc) when is_list(List) ->
     NewAcc = case lists:keyfind(Key, 1, List) of
                  {Key, Value} -> [Value | Acc];
                  false        -> Acc
              end,
-    get_path_list_key(Key, Tail, NewAcc);
-get_path_list_key(Key, [_Elem | Tail], Acc) ->
-    get_path_list_key(Key, Tail, Acc);
-get_path_list_key(_Key, [], Acc) ->
+    get_path_by_element_key(Key, Tail, NewAcc);
+get_path_by_element_key(Key, [_Elem | Tail], Acc) ->
+    get_path_by_element_key(Key, Tail, Acc);
+get_path_by_element_key(_Key, [], Acc) ->
     lists:reverse(Acc).
 
 
 %% @equiv get_value(Key, List, undefined)
--spec get_value(Key :: path_key(), List :: kvlist()) -> value() | undefined.
+-spec get_value(Key :: key(), List :: kvlist()) -> value() | undefined.
 get_value(Key, List) ->
     get_value(Key, List, undefined).
 
@@ -121,14 +116,7 @@ get_value(Key, List) ->
 %%
 %% @see get_value/2
 %% @see set_value/3
--spec get_value(Key :: path_key(), List :: kvlist(), Default :: value()) -> value().
-get_value(Key, List, Default) when is_integer(Key) ->
-    %% Integer (1-based position) keys.
-    try lists:nth(Key, List) of
-        Value -> Value
-    catch
-        _:_   -> Default
-    end;
+-spec get_value(Key :: key(), List :: kvlist(), Default :: value()) -> value().
 get_value(Key, List, Default) ->
     case lists:keyfind(Key, 1, List) of
         {Key, Value} -> Value;
@@ -145,7 +133,7 @@ get_value(Key, List, Default) ->
 %%
 %% @see get_value/2
 %% @see set_values/2
--spec get_values([Key :: path_key() | {Key :: path_key(), Default :: value()}],
+-spec get_values([Key :: key() | {Key :: key(), Default :: value()}],
                  List :: kvlist()) -> Values :: [value()].
 get_values(Keys, List) ->
     get_values(Keys, List, []).
@@ -184,50 +172,82 @@ set_nth(1, Value, [], Acc) ->
 %% @doc Assigns a <code>Value</code> to the element in a <code>List</code> of
 %% key/value pairs corresponding to the <code>Key</code> that was passed. The
 %% <code>Key</code> can be a sequence of names (<code>atom()</code> or
-%% <code>binary()</code>) or indexes (1-based).
+%% <code>binary()</code>); indexes (1-based) or element identifiers
+%% (<code>{Key, ElementId}</code>).
 %%
 %% @see get_path/2
 -spec set_path(Path :: path(), Value :: value(), List :: kvlist()) -> kvlist().
-set_path([Key], Value, List) ->
-    set_path(Key, Value, List);
-set_path([Key | Tail], Value, List) ->
-    Elem = case get_path(Key, List) of
+set_path([], Value, _List) ->
+    Value;
+set_path(PathKey, Value, List) when not is_list(PathKey) ->
+    set_path_value(PathKey, Value, List);
+set_path([PathKey], Value, List) ->
+    set_path_value(PathKey, Value, List);
+set_path([{_Key, _ElemId} | _PathTail] = Path, Value, List) ->
+    %% Set path on element of a list whose Key matches the ElemId.
+    set_path_by_element_id(Path, Value, List);
+set_path([PathKey | PathTail], Value, List) ->
+    Elem = case get_path(PathKey, List) of
                Elem1 when is_list(Elem1) -> Elem1;
                _                         -> []
            end,
-    set_value(Key, set_path(Tail, Value, Elem), List);
-set_path(Key, Value, List) ->
-    if
-        is_list(List)->
-            if is_list(hd(List)) ->
-                    %% Set the value on multiple (identical) keys at the same time.
-                    multi_set_path(Key, Value, List);
-               true ->
-                    set_value(Key, Value, List)
-            end;
-        is_integer(Key) ->
-            set_nth(Key, Value, []);
-        true ->
-            [{Key, Value}]
-    end.
+    set_path_value(PathKey, set_path(PathTail, Value, Elem), List).
 
-multi_set_path(Key, Value, List) when is_list(Value) ->
-    multi_set_path_list(Key, Value, List, []);
-multi_set_path(Key, Value, List) ->
-    multi_set_path_scalar(Key, Value, List, []).
 
-multi_set_path_list(Key, [Value | ValueTail], [Elem | ElemTail], Acc) ->
+set_path_value(Index, Value, List0) when is_integer(Index) ->
+    List = if
+               is_list(List0) -> List0;
+               true           -> [List0]
+           end,
+    %% Integer (1-based position) keys.
+    set_nth(Index, Value, List);
+set_path_value(PathKey, Value, [Head | _Tail] = List) when is_list(Head) ->
+    case PathKey of
+        %% Set path on element of a list whose Key matches the ElemId.
+        {_Key, _ElemId} -> set_path_by_element_id([PathKey], Value, List);
+        %% Set the value on multiple (identical) keys at the same time.
+        _               -> set_path_by_element_key(PathKey, Value, List)
+    end;
+set_path_value(Key, Value, List) when not is_list(Key) ->
+    %% Named (atom/binary) keys.
+    lists:keystore(Key, 1, List, {Key, Value}).
+
+
+%% @doc Set path on element of a list choosing it by element ID (i.e. when a
+%% Key matches the ElemId).
+set_path_by_element_id(Path, Value, List) ->
+    set_path_by_element_id(Path, Value, List, []).
+
+set_path_by_element_id([{Key, ElemId} | PathTail] = Path, Value, [Elem | ElemTail], Acc) when is_list(Elem) ->
+    case lists:keyfind(Key, 1, Elem) of
+        {Key, ElemId} -> lists:reverse(Acc, [set_path(PathTail, Value, Elem) | ElemTail]);
+        _             -> set_path_by_element_id(Path, Value, ElemTail, [Elem | Acc])
+    end;
+set_path_by_element_id(Path, Value, [Elem | ElemTail], Acc) ->
+    set_path_by_element_id(Path, Value, ElemTail, [Elem | Acc]);
+set_path_by_element_id([{_Key, _ElemId} = PathKey | PathTail], Value, [], Acc) ->
+    %% If no element was found with the correct ID, we add an element at the
+    %% of the list with the given ElemId.
+    lists:reverse([set_path(PathTail, Value, [PathKey]) | Acc]).
+
+
+set_path_by_element_key(Key, Value, List) when is_list(Value) ->
+    set_path_by_element_key_on_list(Key, Value, List, []);
+set_path_by_element_key(Key, Value, List) ->
+    set_path_by_element_key_on_scalar(Key, Value, List, []).
+
+set_path_by_element_key_on_list(Key, [Value | ValueTail], [Elem | ElemTail], Acc) ->
     NewAcc = [lists:keyreplace(Key, 1, Elem, {Key, Value}) | Acc],
-    multi_set_path_list(Key, ValueTail, ElemTail, NewAcc);
-multi_set_path_list(Key, [Value | ValueTail], [], Acc) ->
-    multi_set_path_list(Key, ValueTail, [], [[{Key, Value}] | Acc]);
-multi_set_path_list(_Key, [], List, Acc) ->
+    set_path_by_element_key_on_list(Key, ValueTail, ElemTail, NewAcc);
+set_path_by_element_key_on_list(Key, [Value | ValueTail], [], Acc) ->
+    set_path_by_element_key_on_list(Key, ValueTail, [], [[{Key, Value}] | Acc]);
+set_path_by_element_key_on_list(_Key, [], List, Acc) ->
     lists:reverse(Acc, List).
 
-multi_set_path_scalar(Key, Value, [Elem | Tail], Acc) ->
+set_path_by_element_key_on_scalar(Key, Value, [Elem | Tail], Acc) ->
     NewAcc = [lists:keyreplace(Key, 1, Elem, {Key, Value}) | Acc],
-    multi_set_path_scalar(Key, Value, Tail, NewAcc);
-multi_set_path_scalar(_Key, _Value, [], Acc) ->
+    set_path_by_element_key_on_scalar(Key, Value, Tail, NewAcc);
+set_path_by_element_key_on_scalar(_Key, _Value, [], Acc) ->
     lists:reverse(Acc).
 
 
@@ -236,10 +256,7 @@ multi_set_path_scalar(_Key, _Value, [], Acc) ->
 %%
 %% @see get_value/2
 %% @see get_value/3
--spec set_value(Key :: path_key(), Value :: value(), List :: kvlist()) -> kvlist().
-set_value(Key, Value, List) when is_integer(Key) ->
-    %% Integer (1-based position) keys.
-    set_nth(Key, Value, List);
+-spec set_value(Key :: key(), Value :: value(), List :: kvlist()) -> kvlist().
 set_value(Key, Value, List) ->
     %% Named (atom/binary) keys.
     lists:keystore(Key, 1, List, {Key, Value}).
@@ -250,7 +267,7 @@ set_value(Key, Value, List) ->
 %%
 %% @see get_values/2
 %% @see set_value/3
--spec set_values([{Key :: path_key(), Value :: value()}], List :: kvlist()) ->
+-spec set_values([{Key :: key(), Value :: value()}], List :: kvlist()) ->
                         NewList :: kvlist().
 set_values([{Key, Value} | Tail], List) ->
     set_values(Tail, set_value(Key, Value, List));
