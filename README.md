@@ -11,10 +11,10 @@ is similar to that of the `proplists` module, with the addition of nested key
 (*path*) retrieval and modification (loosely inspired by Bob Ippolito's great
 [kvc](https://github.com/etrepum/kvc) library, which itself was inspired by
 Apple's [NSKeyValueCoding](https://developer.apple.com/library/ios/documentation/Cocoa/Reference/Foundation/Protocols/NSKeyValueCoding_Protocol/Reference/Reference.html)
-protocol from Objective-C). `kvlists` allows a behavior similar to that of
-[XPath](http://www.w3.org/TR/xpath/), but with a syntax specifically adapted to
-Erlang. It supports lists of key/value pairs where the keys are either **atoms**
-or **binaries** and their type specification is:
+protocol from Objective-C). `kvlists` provides functionality that is similar to
+that of [XPath](http://www.w3.org/TR/xpath/), but with a syntax specifically
+adapted to Erlang. It supports lists of key/value pairs where the keys are
+either **atoms** or **binaries** and their type specification is:
 ```erlang
 [{Key :: atom() | binary(), Value :: term()}]
 ```
