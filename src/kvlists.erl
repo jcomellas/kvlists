@@ -8,6 +8,7 @@
 -module(kvlists).
 -author('Juan Jose Comellas <juanjo@comellas.org>').
 
+-export([delete_nth/2]).
 -export([delete_value/2]).
 -export([get_value/2, get_value/3]).
 -export([get_values/2]).
@@ -27,6 +28,19 @@
 -type kvlist()     :: [kv()].
 -type path_key()   :: key() | non_neg_integer() | {key(), element_id()}.
 -type path()       :: [path_key()] | path_key().
+
+
+-spec delete_nth(N :: non_neg_integer(), List :: kvlist()) -> kvlist().
+delete_nth(N, List) when is_integer(N), N > 0, is_list(List) ->
+    delete_nth(N, List, []).
+
+delete_nth(N, [Head | Tail], Acc) when N > 1 ->
+    delete_nth(N - 1, Tail, [Head | Acc]);
+delete_nth(1, [_Head | Tail], Acc) ->
+    lists:reverse(Acc, Tail);
+delete_nth(_N, [], Acc) ->
+    lists:reverse(Acc).
+
 
 %% @doc Deletes all entries associated with <code>Key</code> from
 %% <code>List</code>.
