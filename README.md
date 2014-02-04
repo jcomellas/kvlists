@@ -1,5 +1,6 @@
 # kvlists
 
+
 ## Overview
 
 [kvlists](https://github.com/jcomellas/kvlists) is a module that can manipulate
@@ -19,11 +20,13 @@ or **binaries** and their type specification is:
 ```
 Where `Value` can also be a nested list of key/value tuples.
 
+
 ## Requirements
 
 You should use a recent version of Erlang/OTP (the project has only been tested
 with Erlang R16B so far). You also need [GNU make](https://www.gnu.org/software/make/)
 and a recent version of [rebar](https://github.com/rebar/rebar) in the system path.
+
 
 ## Installation
 
@@ -41,11 +44,13 @@ copying) by running:
 
     sudo ln -s . /usr/lib/erlang/lib/kvlists-`git describe --tags`
 
+
 ## Status
 
 This application has been lightly tested so far and is still in a development
 stage. It has a test suite that covers most of the functionality but it has not
 been used in production yet.
+
 
 ## Type Specifications
 
@@ -58,6 +63,7 @@ The type specifications exported by the module are:
 -type path_key()  :: key() | non_neg_integer().
 -type path()      :: [path_key()] | path_key().
 ```
+
 
 ## Functions
 
@@ -90,9 +96,12 @@ Deletes all entries associated with `Key` from `List`.
 
 ### get_path/2
 Performs the lookup of a `Path` (list of nested keys) over a nested `List` of
-key/value pairs. Each key in the `Path` can either be a name (`atom()` or
-`binary()`) or a positive integer (using 1-based indexing). If no value is
-found corresponding to the `Path` then `[]` is returned.
+key/value pairs. Each key in the `Path` can be a name (`atom()` or `binary()`);
+a positive integer (using 1-based indexing); or a tuple that looks like
+`{Key, ElementId}`. If the latter path key is used, then the function wil try
+to match the element in a list whose `Key` has the value `ElementId` and
+continue the lookup with the following path key. If no value is found
+corresponding to the `Path` then `[]` is returned.
 
 #### Specification
 ```erlang
@@ -111,44 +120,65 @@ Given:
                         [{type, negative}, {percent, 0}],
                         [{type, neutral}, {percent, 1}]]}]}].
 ```
+Retrieve an empty key:
+```erlang
+2> kvlists:get_path([], List).
+[{transactions,[{period,<<"3 months">>},
+                {total,3659},
+                {completed,3381},
+                {canceled,278},
+                {ratings,[[{type,positive},{percent,99}],
+                          [{type,negative},{percent,0}],
+                          [{type,neutral},{percent,1}]]}]}]
+```
 Retrieve a key with a single (scalar) value:
 ```erlang
-2> kvlists:get_path([transactions, total], List).
+3> kvlists:get_path([transactions, total], List).
 3659
 ```
 Retrieve a non-existent key:
 ```erlang
-3> kvlists:get_path(invalid_key, List).
+4> kvlists:get_path(invalid_key, List).
 []
 ```
 Retrieve a nested key with a list of key/value pair lists:
 ```erlang
-4>  kvlists:get_path([transactions, ratings], List).
+5> kvlists:get_path([transactions, ratings], List).
 [[{type, positive}, {percent, 99}],
  [{type, negative}, {percent, 0}],
  [{type, neutral}, {percent, 1}]].
 ```
 Retrieve some key/value pairs associated to a nested key by name and index:
 ```erlang
-5>  kvlists:get_path([transactions, ratings, 2], List).
+6> kvlists:get_path([transactions, ratings, 2], List).
 [{type, negative}, {percent, 0}].
 ```
 Retrieve a single value associated to a nested key by name and index:
 ```erlang
-6>  kvlists:get_path([transactions, ratings, 3, percent], List).
+7> kvlists:get_path([transactions, ratings, 3, percent], List).
 1
 ```
 Retrieve multiple values associated to a nested key present in several elements
 of a list:
 ```erlang
-7>  kvlists:get_path([transactions, ratings, percent], List).
+8> kvlists:get_path([transactions, ratings, percent], List).
 [99,0,1]
 ```
 Retrieve multiple values associated to a nested key present in several elements
 of a list:
 ```erlang
-8>  kvlists:get_path([transactions, ratings, type], List).
+9> kvlists:get_path([transactions, ratings, type], List).
 [positive,negative,neutral]
+```
+Retrieve an element in a list by element ID:
+```erlang
+10> kvlists:get_path([transactions, ratings, {type, negative}], List).
+[{type,negative},{percent,0}]
+```
+Retrieve a value from an element in a list by element ID:
+```erlang
+11> kvlists:get_path([transactions, ratings, {type, neutral}, percent], List).
+1
 ```
 
 ### get_value/2
@@ -222,10 +252,14 @@ true
 3> kvlists:member(jkl, List).
 false
 ```
+
 ### set_path/3
 Assigns a `Value` to the element in a `List` of key/value pairs corresponding to
-the `Path` that was passed. The `Path` can be a sequence of names (`atom()` or
-`binary()`) or indexes (1-based).
+the `Path` that was passed. The `Path` can be a sequence of: names (`atom()` or
+`binary()`); indexes (1-based); or a tuple that looks like `{Key, ElementId}`.
+If the latter path key is used, then the function wil try to match the element
+in a list whose `Key` has the value `ElementId` and continue the lookup with
+the following path key.
 
 #### Specification
 ```erlang
@@ -244,9 +278,14 @@ Given:
                         [{type, negative}, {percent, 0}],
                         [{type, neutral}, {percent, 1}]]}]}].
 ```
+Set a value with an empty path:
+```erlang
+2> kvlists:set_path([], <<"6 months">>, List).
+<<"6 months">>
+```
 Set a value by key name:
 ```erlang
-2> kvlists:set_path([transactions, period], <<"6 months">>, List).
+3> kvlists:set_path([transactions, period], <<"6 months">>, List).
 [{transactions,[{period,<<"6 months">>},
                 {total,3659},
                 {completed,3381},
@@ -257,7 +296,7 @@ Set a value by key name:
 ```
 Set individual value by key name and index in list:
 ```erlang
-3> kvlists:set_path([transactions, ratings, 2, percent], 55, List).
+4> kvlists:set_path([transactions, ratings, 2, percent], 55, List).
 [{transactions,[{period,<<"3 months">>},
                 {total,3659},
                 {completed,3381},
@@ -268,7 +307,7 @@ Set individual value by key name and index in list:
 ```
 Set multiple entries in a list with a single value:
 ```erlang
-4> kvlists:set_path([transactions, ratings, percent], 123, List).
+5> kvlists:set_path([transactions, ratings, percent], 123, List).
 [{transactions,[{period,<<"3 months">>},
                 {total,3659},
                 {completed,3381},
@@ -279,7 +318,7 @@ Set multiple entries in a list with a single value:
 ```
 Set multiple entries in a list with a multiple values:
 ```erlang
-5> kvlists:set_path([transactions, ratings, percent], [10, 20, 30, 40], List).
+6> kvlists:set_path([transactions, ratings, percent], [10, 20, 30, 40], List).
 [{transactions,[{period,<<"3 months">>},
                 {total,3659},
                 {completed,3381},
@@ -288,6 +327,40 @@ Set multiple entries in a list with a multiple values:
                           [{type,negative},{percent,20}],
                           [{type,neutral},{percent,30}],
                           [{percent,40}]]}]}]
+```
+Set a single value in list by element ID:
+```erlang
+7> kvlists:set_path([transactions, ratings, {type, positive}, percent], 1000, List).
+[{transactions,[{period,<<"3 months">>},
+                {total,3659},
+                {completed,3381},
+                {canceled,278},
+                {ratings,[[{type,positive},{percent,1000}],
+                          [{type,negative},{percent,0}],
+                          [{type,neutral},{percent,1}]]}]}]
+```
+Replace an element by element ID:
+```erlang
+8> kvlists:set_path([transactions, ratings, {type, negative}], [{type, unknown}, {value, 100}], List).
+[{transactions,[{period,<<"3 months">>},
+                {total,3659},
+                {completed,3381},
+                {canceled,278},
+                {ratings,[[{type,positive},{percent,99}],
+                          [{type,unknown},{value,100}],
+                          [{type,neutral},{percent,1}]]}]}]
+```
+Add a new element by element ID:
+```erlang
+9> kvlists:set_path([transactions, ratings, {type, unknown}, percent], 50, List).
+[{transactions,[{period,<<"3 months">>},
+                {total,3659},
+                {completed,3381},
+                {canceled,278},
+                {ratings,[[{type,positive},{percent,99}],
+                          [{type,negative},{percent,0}],
+                          [{type,neutral},{percent,1}],
+                          [{type,unknown},{percent,50}]]}]}]
 ```
 
 ### set_value/3
