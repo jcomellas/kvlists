@@ -70,7 +70,7 @@ The type specifications exported by the module are:
 
 The `kvlists` module also provides the following functions:
 
-  * [delete/2](#delete2)
+  * [delete_value/2](#delete_value2)
   * [get_path/2](#get_path2)
   * [get_value/2](#get_value2)
   * [get_value/3](#get_value3)
@@ -81,17 +81,17 @@ The `kvlists` module also provides the following functions:
   * [set_values/2](#set_values2)
 
 
-### delete/2
+### delete_value/2
 Deletes all entries associated with `Key` from `List`.
 
 #### Specification
 ```erlang
--spec delete(Key :: key(), List :: kvlist()) -> kvlist().
+-spec delete_value(Key :: key(), List :: kvlist()) -> kvlist().
 ```
 #### Example
 ```erlang
 1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
-2> kvlists:delete(def, List).
+2> kvlists:delete_value(def, List).
 [{abc,123},{ghi,789}]
 ```
 
