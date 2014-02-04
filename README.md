@@ -87,10 +87,10 @@ Deletes the element that matches a `Path` (list of nested keys) in a nested
 `List` of key/value pairs. Each key in the `Path` can be a name (`atom()` or
 `binary()`); a positive integer (using 1-based indexing); or a tuple that
 looks like `{Key, ElementId}`. If the latter path key is used, then the
-function will try to match the element in a list whose `Key` has the value
-`ElementId` and continue with the following path key. If no value is found
-corresponding to the `Path` then `List` is returned. If the `Path` is set to
-`[]` then `[]` will be returned.
+function will try to match the element (tuple) in a list whose `Key` has the
+value `ElementId` and continue with the following path key. If no value is
+found corresponding to the `Path` then `List` is returned. If the `Path` is
+set to `[]` then `[]` will be returned.
 
 #### Specification
 ```erlang
@@ -217,8 +217,8 @@ Performs the lookup of a `Path` (list of nested keys) over a nested `List` of
 key/value pairs. Each key in the `Path` can be a name (`atom()` or `binary()`);
 a positive integer (using 1-based indexing); or a tuple that looks like
 `{Key, ElementId}`. If the latter path key is used, then the function will try
-to match the element in a list whose `Key` has the value `ElementId` and
-continue the lookup with the following path key. If no value is found
+to match the element (tuple) in a list whose `Key` has the value `ElementId`
+and continue the lookup with the following path key. If no value is found
 corresponding to the `Path` then `[]` is returned.
 
 #### Specification
@@ -376,8 +376,8 @@ Assigns a `Value` to the element in a `List` of key/value pairs corresponding to
 the `Path` that was passed. The `Path` can be a sequence of: names (`atom()` or
 `binary()`); indexes (1-based); or a tuple that looks like `{Key, ElementId}`.
 If the latter path key is used, then the function will try to match the element
-in a list whose `Key` has the value `ElementId` and continue the lookup with
-the following path key.
+(tuple) in a list whose `Key` has the value `ElementId` and continue the lookup
+with the following path key.
 
 #### Specification
 ```erlang
