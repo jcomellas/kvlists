@@ -42,7 +42,7 @@ distclean:
 	@rebar clean delete-deps
 
 dialyze: compile
-	@dialyzer $(DIALYZER_OPTS) -r ./
+	@dialyzer $(DIALYZER_OPTS) -r ./ebin/
 
 release: compile
 	@rebar generate
