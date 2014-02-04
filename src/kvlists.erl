@@ -9,6 +9,7 @@
 -author('Juan Jose Comellas <juanjo@comellas.org>').
 
 -export([delete_nth/2]).
+-export([delete_path/2]).
 -export([delete_value/2]).
 -export([get_value/2, get_value/3]).
 -export([get_values/2]).
@@ -40,6 +41,92 @@ delete_nth(1, [_Head | Tail], Acc) ->
     lists:reverse(Acc, Tail);
 delete_nth(_N, [], Acc) ->
     lists:reverse(Acc).
+
+
+-spec delete_path(Path :: path(), List :: kvlist()) -> value().
+delete_path([], _List) ->
+    [];
+delete_path(_Path, Elem) when not is_list(Elem) ->
+    Elem;
+delete_path(PathKey, List) when not is_list(PathKey) ->
+    delete_path_value(PathKey, List);
+delete_path([PathKey], List) ->
+    delete_path_value(PathKey, List);
+delete_path([{_Key, _ElemId} | _PathTail] = Path, List) ->
+    %% Set path on element of a list whose Key matches the ElemId.
+    delete_path_by_element_id(Path, List);
+delete_path([PathKey | PathTail], List) ->
+    Elem = case get_path(PathKey, List) of
+               Elem1 when is_list(Elem1) -> Elem1;
+               Other                    -> Other
+           end,
+    set_path_value(PathKey, delete_path(PathTail, Elem), List).
+
+
+delete_path_value(Index, List) when is_integer(Index), is_list(List) ->
+    %% Integer (1-based position) keys.
+    delete_nth(Index, List);
+delete_path_value(PathKey, [Head | _Tail] = List) when is_list(Head) ->
+    case PathKey of
+        %% Set path on element of a list whose Key matches the ElemId.
+        {_Key, _ElemId} -> delete_path_by_element_id([PathKey], List);
+        %% Set the value on multiple (identical) keys at the same time.
+        _               -> delete_path_by_element_key(PathKey, List)
+    end;
+delete_path_value(Key, List) when not is_list(Key) ->
+    %% Named (atom/binary) keys.
+    lists:keydelete(Key, 1, List).
+
+
+%% @doc Delete element of a list choosing it by element ID (i.e. when a
+%% Key matches the ElemId).
+delete_path_by_element_id(Path, List) ->
+    delete_path_by_element_id(Path, List, []).
+
+delete_path_by_element_id([{Key, ElemId} | PathTail] = Path, [Elem | ElemTail], Acc) when is_list(Elem) ->
+    case lists:keyfind(Key, 1, Elem) of
+        {Key, ElemId} ->
+            NewElemTail = case delete_path(PathTail, Elem) of
+                              []      -> ElemTail;
+                              NewElem -> [NewElem | ElemTail]
+                          end,
+            lists:reverse(Acc, NewElemTail);
+        _ ->
+            delete_path_by_element_id(Path, ElemTail, [Elem | Acc])
+    end;
+delete_path_by_element_id(Path, [Elem | ElemTail], Acc) ->
+    delete_path_by_element_id(Path, ElemTail, [Elem | Acc]);
+delete_path_by_element_id(_Path, [], Acc) ->
+    lists:reverse(Acc).
+
+
+delete_path_by_element_key(Key, List) ->
+    delete_path_by_element_key(Key, List, []).
+
+delete_path_by_element_key(Key, [Elem | Tail], Acc) ->
+    delete_path_by_element_key(Key, Tail, [lists:keydelete(Key, 1, Elem) | Acc]);
+delete_path_by_element_key(_Key, [], Acc) ->
+    lists:reverse(Acc).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 %% @doc Deletes all entries associated with <code>Key</code> from

@@ -70,6 +70,7 @@ The type specifications exported by the module are:
 
 The `kvlists` module also provides the following functions:
 
+  * [delete_path/2](#delete_path2)
   * [delete_value/2](#delete_value2)
   * [get_path/2](#get_path2)
   * [get_value/2](#get_value2)
@@ -80,6 +81,122 @@ The `kvlists` module also provides the following functions:
   * [set_value/3](#set_value3)
   * [set_values/2](#set_values2)
 
+
+### delete_path/2
+Deletes the element that matches a `Path` (list of nested keys) in a nested
+`List` of key/value pairs. Each key in the `Path` can be a name (`atom()` or
+`binary()`); a positive integer (using 1-based indexing); or a tuple that
+looks like `{Key, ElementId}`. If the latter path key is used, then the
+function will try to match the element in a list whose `Key` has the value
+`ElementId` and continue with the following path key. If no value is found
+corresponding to the `Path` then `List` is returned. If the `Path` is set to
+`[]` then `[]` will be returned.
+
+#### Specification
+```erlang
+-spec delete_path(Path :: path(), List :: kvlist()) -> value().
+```
+#### Examples
+
+Given:
+```erlang
+1> List = [{transactions,
+            [{period, <<"3 months">>},
+             {total, 3659},
+             {completed, 3381},
+             {canceled, 278},
+             {ratings, [[{type, positive}, {percent, 99}],
+                        [{type, negative}, {percent, 0}],
+                        [{type, neutral}, {percent, 1}]]}]}].
+```
+Delete an empty key:
+```erlang
+2> kvlists:delete_path([], List).
+[]
+```
+Delete a key with a single (scalar) value:
+```erlang
+3> kvlists:delete_path([transactions, total], List).
+[{transactions,[{period,<<"3 months">>},
+                {completed,3381},
+                {canceled,278},
+                {ratings,[[{type,positive},{percent,99}],
+                          [{type,negative},{percent,0}],
+                          [{type,neutral},{percent,1}]]}]}]
+```
+Delete a non-existent key:
+```erlang
+4> kvlists:delete_path(invalid_key, List).
+[{transactions,[{period,<<"3 months">>},
+                {total,3659},
+                {completed,3381},
+                {canceled,278},
+                {ratings,[[{type,positive},{percent,99}],
+                          [{type,negative},{percent,0}],
+                          [{type,neutral},{percent,1}]]}]}]
+```
+Delete a nested key with a list of key/value pair lists:
+```erlang
+5> kvlists:delete_path([transactions, ratings], List).
+[{transactions,[{period,<<"3 months">>},
+                {total,3659},
+                {completed,3381},
+                {canceled,278}]}]
+```
+Delete some key/value pairs associated to a nested key by name and index:
+```erlang
+6> kvlists:delete_path([transactions, ratings, 2], List).
+[{transactions,[{period,<<"3 months">>},
+                {total,3659},
+                {completed,3381},
+                {canceled,278},
+                {ratings,[[{type,positive},{percent,99}],
+                          [{type,neutral},{percent,1}]]}]}]
+```
+Delete a single value associated to a nested key by name and index:
+```erlang
+7> kvlists:delete_path([transactions, ratings, 3, percent], List).
+[{transactions,[{period,<<"3 months">>},
+                {total,3659},
+                {completed,3381},
+                {canceled,278},
+                {ratings,[[{type,positive},{percent,99}],
+                          [{type,negative},{percent,0}],
+                          [{type,neutral}]]}]}]
+```
+Delete multiple values associated to a nested key present in several elements
+of a list:
+```erlang
+8> kvlists:delete_path([transactions, ratings, percent], List).
+[{transactions,[{period,<<"3 months">>},
+                {total,3659},
+                {completed,3381},
+                {canceled,278},
+                {ratings,[[{type,positive}],
+                          [{type,negative}],
+                          [{type,neutral}]]}]}]
+```
+Delete an element in a list by element ID:
+```erlang
+9> kvlists:delete_path([transactions, ratings, {type, negative}], List).
+[{transactions,[{period,<<"3 months">>},
+                {total,3659},
+                {completed,3381},
+                {canceled,278},
+                {ratings,[[{type,positive},{percent,99}],
+                          [{type,neutral},{percent,1}]]}]}]
+```
+Delete a value from an element in a list by element ID:
+```erlang
+10> kvlists:delete_path([transactions, ratings, {type, neutral}, percent], List).
+[{transactions,[{period,<<"3 months">>},
+                {total,3659},
+                {completed,3381},
+                {canceled,278},
+                {ratings,[[{type,positive},{percent,99}],
+                          [{type,negative},{percent,0}],
+                          [{type,neutral}]]}]}]
+```
 
 ### delete_value/2
 Deletes all entries associated with `Key` from `List`.
