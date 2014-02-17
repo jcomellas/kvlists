@@ -109,26 +109,6 @@ delete_path_by_element_key(_Key, [], Acc) ->
     lists:reverse(Acc).
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 %% @doc Deletes all entries associated with <code>Key</code> from
 %% <code>List</code>.
 -spec delete_value(Key :: key(), List :: kvlist()) -> kvlist().
