@@ -282,13 +282,12 @@ set_path_value(Index, Value, List0) when is_integer(Index) ->
            end,
     %% Integer (1-based position) keys.
     set_nth(Index, Value, List);
+set_path_value(PathKey, Value, List) when is_tuple(PathKey), is_list(List) ->
+    %% Set path on element of a list whose Key matches the ElemId.
+    set_path_by_element_id([PathKey], Value, List);
 set_path_value(PathKey, Value, [Head | _Tail] = List) when is_list(Head) ->
-    case PathKey of
-        %% Set path on element of a list whose Key matches the ElemId.
-        {_Key, _ElemId} -> set_path_by_element_id([PathKey], Value, List);
-        %% Set the value on multiple (identical) keys at the same time.
-        _               -> set_path_by_element_key(PathKey, Value, List)
-    end;
+    %% Set the value on multiple (identical) keys at the same time.
+    set_path_by_element_key(PathKey, Value, List);
 set_path_value(Key, Value, List) when not is_list(Key) ->
     %% Named (atom/binary) keys.
     lists:keystore(Key, 1, List, {Key, Value}).

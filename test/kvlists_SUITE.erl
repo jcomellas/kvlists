@@ -315,6 +315,7 @@ t_set_path(_Config) ->
                                [{type, neutral}, {percent, 1}]]}]}]},
                 {status,[{site_status,<<"active">>}]}],
     100 = kvlists:set_path([], 100, AtomList),
+    [[{key1, abc}, {key2, def}]] =  kvlists:set_path([{key1, abc}, key2], def, []),
     Check(id, 1000, AtomList),
     Check([nickname], <<"MYNAME">>, AtomList),
     Check([address, city], <<"Other City">>, AtomList),
