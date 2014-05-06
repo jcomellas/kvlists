@@ -1,7 +1,7 @@
 {application, kvlists,
  [
   {description, "Erlang library to manipulate lists of key/value pairs"},
-  {vsn, "0.5.1"},
+  {vsn, "0.6.0"},
   {registered, []},
   {applications, [kernel, stdlib]},
   {env, []}
