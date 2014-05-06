@@ -83,6 +83,7 @@ The `kvlists` module also provides the following functions:
   * [with/2](#with2)
   * [without/2](#without2)
 
+-------------
 
 ### delete_path/2
 Deletes the element that matches a `Path` (list of nested keys) in a nested
@@ -200,6 +201,8 @@ Delete a value from an element in a list by element ID:
                           [{type,neutral}]]}]}]
 ```
 
+-------------
+
 ### delete_value/2
 Deletes all entries associated with `Key` from `List`.
 
@@ -213,6 +216,8 @@ Deletes all entries associated with `Key` from `List`.
 2> kvlists:delete_value(def, List).
 [{abc,123},{ghi,789}]
 ```
+
+-------------
 
 ### get_path/2
 Performs the lookup of a `Path` (list of nested keys) over a nested `List` of
@@ -301,6 +306,8 @@ Retrieve a value from an element in a list by element ID:
 1
 ```
 
+-------------
+
 ### get_value/2
 Equivalent to `get_value(Key, List, undefined)`.
 
@@ -316,6 +323,8 @@ Equivalent to `get_value(Key, List, undefined)`.
 3> kvlists:get_value(jkl, List).
 undefined
 ```
+
+-------------
 
 ### get_value/3
 Returns the value of a simple key/value property in `List`. If the `Key` is
@@ -334,6 +343,8 @@ found in the list, this function returns the corresponding `Value`, otherwise
 3> kvlists:get_value(jkl, List, 100).
 100
 ```
+
+-------------
 
 ### get_values/2
 Returns the list of values corresponding to the different `Keys` in `List`.
@@ -356,6 +367,8 @@ is just a key, then `undefined` is added to the returned list.
 [123, 456, 789, 200]
 ```
 
+-------------
+
 ### member/2
 Returns `true` if there is an entry in `List` whose key is equal to `Key`,
 otherwise `false`.
@@ -372,6 +385,8 @@ true
 3> kvlists:member(jkl, List).
 false
 ```
+
+-------------
 
 ### set_path/3
 Assigns a `Value` to the element in a `List` of key/value pairs corresponding to
@@ -483,6 +498,8 @@ Add a new element by element ID:
                           [{type,unknown},{percent,50}]]}]}]
 ```
 
+-------------
+
 ### set_value/3
 Adds a property to the `List` with the corresponding `Key` and `Value`.
 
@@ -496,6 +513,8 @@ Adds a property to the `List` with the corresponding `Key` and `Value`.
 2> kvlists:set_value(def, 200, List).
 [{abc, 123}, {def, 200}, {ghi, 789}]
 ```
+
+-------------
 
 ### set_values/2
 Sets each `Key` in `List` to its corresponding `Value`.
@@ -512,6 +531,8 @@ Sets each `Key` in `List` to its corresponding `Value`.
 [{abc, 100}, {def, 456}, {ghi, 789}, {jkl, <<"JKL">>}]
 ```
 
+-------------
+
 ### with/2
 Return a `NewList` where the `Key` of each element is present in the list
 of `Keys`.
@@ -526,6 +547,8 @@ of `Keys`.
 2> kvlists:with([abc, ghi], List).
 [{abc, 123}, {ghi, 789}]
 ```
+
+-------------
 
 ### without/2
 Return a `NewList` where the `Key` of each element is not present in the list
