@@ -359,6 +359,8 @@ set_values([], List) ->
 
 %% @doc Return a <code>NewList</code> where the <code>Key</code> of each
 %% element is present in the list of <code>Keys</code>.
+%%
+%% @see without/2
 -spec with(Keys :: [key()], List :: kvlist()) -> NewList :: kvlist().
 with(Keys, List) ->
     lists:filter(fun (Elem) -> with_filter(Elem, Keys) end, List).
@@ -366,6 +368,8 @@ with(Keys, List) ->
 
 %% @doc Return a <code>NewList</code> where the <code>Key</code> of each
 %% element is not present in the list of <code>Keys</code>.
+%%
+%% @see with/2
 -spec without(Keys :: [key()], List :: kvlist()) -> NewList :: kvlist().
 without(Keys, List) ->
     lists:filter(fun (Elem) -> not with_filter(Elem, Keys) end, List).
