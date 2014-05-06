@@ -49,7 +49,9 @@ groups() ->
        t_member,
        t_set_path,
        t_set_value,
-       t_set_values
+       t_set_values,
+       t_with,
+       t_without
       ]}
      ].
 
@@ -408,3 +410,37 @@ t_set_values(_Config) ->
     [{<<"abc">>, 123}, {<<"def">>, 200}, {<<"ghi">>, 789}] = kvlists:set_values([{<<"def">>, 200}], BinList),
     [{<<"abc">>, 123}, {<<"def">>, 456}, {<<"ghi">>, 300}] = kvlists:set_values([{<<"ghi">>, 300}], BinList),
     [{<<"abc">>, 100}, {<<"def">>, 456}, {<<"ghi">>, 789}, {<<"jkl">>, 'JKL'}] = kvlists:set_values([{<<"abc">>, 100}, {<<"jkl">>, 'JKL'}], BinList).
+
+
+t_with(_Config) ->
+    %% With atoms as keys
+    AtomList = [{abc, 123}, {def, 456}, {ghi, 789}],
+    [] = kvlists:with([], AtomList),
+    [{abc, 123}] = kvlists:with([abc], AtomList),
+    [{abc, 123}] = kvlists:with([abc, jkl], AtomList),
+    [{def, 456}, {ghi, 789}] = kvlists:with([def, ghi], AtomList),
+    AtomList = kvlists:with([abc, def, ghi], AtomList),
+    %% With binaries as keys
+    BinList = [{<<"abc">>, 123}, {<<"def">>, 456}, {<<"ghi">>, 789}],
+    [] = kvlists:with([], BinList),
+    [{<<"abc">>, 123}] = kvlists:with([<<"abc">>], BinList),
+    [{<<"abc">>, 123}] = kvlists:with([<<"abc">>, <<"jkl">>], BinList),
+    [{<<"def">>, 456}, {<<"ghi">>, 789}] = kvlists:with([<<"def">>, <<"ghi">>], BinList),
+    BinList = kvlists:with([<<"abc">>, <<"def">>, <<"ghi">>], BinList).
+
+
+t_without(_Config) ->
+    %% With atoms as keys
+    AtomList = [{abc, 123}, {def, 456}, {ghi, 789}],
+    AtomList = kvlists:without([], AtomList),
+    [{def, 456}, {ghi, 789}] = kvlists:without([abc], AtomList),
+    [{def, 456}, {ghi, 789}] = kvlists:without([abc, jkl], AtomList),
+    [{abc, 123}] = kvlists:without([def, ghi], AtomList),
+    [] = kvlists:without([abc, def, ghi], AtomList),
+    %% With binaries as keys
+    BinList = [{<<"abc">>, 123}, {<<"def">>, 456}, {<<"ghi">>, 789}],
+    BinList = kvlists:without([], BinList),
+    [{<<"def">>, 456}, {<<"ghi">>, 789}] = kvlists:without([<<"abc">>], BinList),
+    [{<<"def">>, 456}, {<<"ghi">>, 789}] = kvlists:without([<<"abc">>, <<"jkl">>], BinList),
+    [{<<"abc">>, 123}] = kvlists:without([<<"def">>, <<"ghi">>], BinList),
+    [] = kvlists:without([<<"abc">>, <<"def">>, <<"ghi">>], BinList).

@@ -80,6 +80,8 @@ The `kvlists` module also provides the following functions:
   * [set_path/3](#set_path3)
   * [set_value/3](#set_value3)
   * [set_values/2](#set_values2)
+  * [with/2](#with)
+  * [without/2](#without)
 
 
 ### delete_path/2
@@ -508,4 +510,34 @@ Sets each `Key` in `List` to its corresponding `Value`.
 1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
 2> kvlists:set_values([{abc, 100}, {jkl, <<"JKL">>}], List).
 [{abc, 100}, {def, 456}, {ghi, 789}, {jkl, <<"JKL">>}]
+```
+
+### with/2
+Return a `NewList` where the `Key` of each element is present in the list
+of `Keys`.
+
+#### Specification
+```erlang
+-spec with(Keys :: [key()], List :: kvlist()) -> NewList :: kvlist().
+```
+#### Example
+```erlang
+1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
+2> kvlists:with([abc, ghi], List).
+[{abc, 123}, {ghi, 789}]
+```
+
+### without/2
+Return a `NewList` where the `Key` of each element is not present in the list
+of `Keys`.
+
+#### Specification
+```erlang
+-spec without(Keys :: [key()], List :: kvlist()) -> NewList :: kvlist().
+```
+#### Example
+```erlang
+1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
+2> kvlists:without([abc, ghi], List).
+[{def, 456}]
 ```

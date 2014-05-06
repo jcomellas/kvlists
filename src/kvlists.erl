@@ -19,6 +19,8 @@
 -export([set_path/3]).
 -export([set_value/3]).
 -export([set_values/2]).
+-export([with/2]).
+-export([without/2]).
 
 -export_type([key/0, kv/0, kvlist/0, path/0, value/0]).
 
@@ -353,3 +355,21 @@ set_values([{Key, Value} | Tail], List) ->
     set_values(Tail, set_value(Key, Value, List));
 set_values([], List) ->
     List.
+
+
+%% @doc Return a <code>NewList</code> where the <code>Key</code> of each
+%% element is present in the list of <code>Keys</code>.
+-spec with(Keys :: [key()], List :: kvlist()) -> NewList :: kvlist().
+with(Keys, List) ->
+    lists:filter(fun (Elem) -> with_filter(Elem, Keys) end, List).
+
+
+%% @doc Return a <code>NewList</code> where the <code>Key</code> of each
+%% element is not present in the list of <code>Keys</code>.
+-spec without(Keys :: [key()], List :: kvlist()) -> NewList :: kvlist().
+without(Keys, List) ->
+    lists:filter(fun (Elem) -> not with_filter(Elem, Keys) end, List).
+
+
+with_filter({Key, _Value}, Keys) -> lists:member(Key, Keys);
+with_filter(_Elem, _Keys)        -> false.
