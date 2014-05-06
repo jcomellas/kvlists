@@ -80,8 +80,8 @@ The `kvlists` module also provides the following functions:
   * [set_path/3](#set_path3)
   * [set_value/3](#set_value3)
   * [set_values/2](#set_values2)
-  * [with/2](#with)
-  * [without/2](#without)
+  * [with/2](#with2)
+  * [without/2](#without2)
 
 
 ### delete_path/2
