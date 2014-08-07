@@ -11,6 +11,7 @@
 -export([delete_nth/2]).
 -export([delete_path/2]).
 -export([delete_value/2]).
+-export([equal/2]).
 -export([get_value/2, get_value/3]).
 -export([get_values/2]).
 -export([get_path/2]).
@@ -116,6 +117,40 @@ delete_path_by_element_key(_Key, [], Acc) ->
 -spec delete_value(Key :: key(), List :: kvlist()) -> kvlist().
 delete_value(Key, List) ->
     lists:keydelete(Key, 1, List).
+
+
+%% @doc Compares two lists and returns a boolean indicating whether both lists
+%% are equal. Two kvlists are equal when they have the same keys with the same
+%% values, independently of the position of each key in the list.
+-spec equal(List1 :: kvlist(), List2 :: kvlist()) -> boolean().
+equal([{Key, Value1} | Tail1], [{Key, Value2} | Tail2]) ->
+    Equal = if
+                is_list(Value1), is_list(Value2) -> equal(Value1, Value2);
+                true                             -> Value1 =:= Value2
+            end,
+    if
+        Equal -> equal(Tail1, Tail2);
+        true -> false
+    end;
+equal([{Key, Value1} | Tail1], List2) ->
+    case lists:keytake(Key, 1, List2) of
+        {value, {Key, Value2}, Tail2} when is_list(Value1), is_list(Value2) ->
+            case equal(Value1, Value2) of
+                true  -> equal(Tail1, Tail2);
+                false -> false
+            end;
+        {value, {Key, Value1}, Tail2} when not is_list(Value1) ->
+            equal(Tail1, Tail2);
+        {value, {Key, _Value2}, _NewList2} ->
+            false;
+        false ->
+            false
+    end;
+equal(Element, Element) ->
+    true;
+equal(_List1, _List2) ->
+    false.
+
 
 
 %% @doc Performs the lookup of a <code>Path</code> (list of keys) over a nested

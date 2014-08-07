@@ -46,6 +46,7 @@ groups() ->
        t_get_path,
        t_get_value,
        t_get_values,
+       t_equal,
        t_member,
        t_set_path,
        t_set_value,
@@ -265,6 +266,33 @@ t_get_values(_Config) ->
     ["789"] = kvlists:get_values([<<"ghi">>], BinList),
     ["123", "456", "789", "200"] = kvlists:get_values([<<"abc">>, {<<"def">>, "100"},
                                                        <<"ghi">>, {<<"jkl">>, "200"}], BinList).
+
+
+t_equal(_Config) ->
+    true = kvlists:equal([], []),
+    false = kvlists:equal([{a, 100}], []),
+    true = kvlists:equal([{a, 100}], [{a, 100}]),
+    false = kvlists:equal([{a, 100}], [{a, 200}]),
+    true = kvlists:equal([{a, [100, 200, 300]}], [{a, [100, 200, 300]}]),
+    false = kvlists:equal([{a, [200, 100, 300]}], [{a, [300, 200, 100]}]),
+    false = kvlists:equal([{b, 200}], [{b, 200}, {a, 100}]),
+    true = kvlists:equal([{a, 100}, {b, 200}], [{b, 200}, {a, 100}]),
+    false = kvlists:equal([{a, 100}, {b, 300}], [{a, 100}, {b, 200}]),
+    false = kvlists:equal([{a, [{c, 300}, {d, [{e, 400}]}]}, {b, [{f, 200}]}], [{c, 300}, {e, 400}]),
+    true = kvlists:equal([{a, [{c, 300}, {d, [{e, 400}]}]}, {b, [{f, 200}]}], [{b, [{f, 200}]}, {a, [{d, [{e, 400}]}, {c, 300}]}]),
+
+    false = kvlists:equal([{<<"a">>, 100}], []),
+    true = kvlists:equal([{<<"a">>, 100}], [{<<"a">>, 100}]),
+    false = kvlists:equal([{<<"a">>, 100}], [{<<"a">>, 200}]),
+    true = kvlists:equal([{<<"a">>, [100, 200, 300]}], [{<<"a">>, [100, 200, 300]}]),
+    false = kvlists:equal([{<<"a">>, [200, 100, 300]}], [{<<"a">>, [300, 200, 100]}]),
+    false = kvlists:equal([{<<"b">>, 200}], [{<<"b">>, 200}, {<<"a">>, 100}]),
+    true = kvlists:equal([{<<"a">>, 100}, {<<"b">>, 200}], [{<<"b">>, 200}, {<<"a">>, 100}]),
+    false = kvlists:equal([{<<"a">>, 100}, {<<"b">>, 300}], [{<<"a">>, 100}, {<<"b">>, 200}]),
+    false = kvlists:equal([{<<"a">>, [{<<"c">>, 300}, {<<"d">>, [{<<"e">>, 400}]}]}, {<<"b">>, [{<<"f">>, 200}]}],
+                          [{<<"c">>, 300}, {<<"e">>, 400}]),
+    true = kvlists:equal([{<<"a">>, [{<<"c">>, 300}, {<<"d">>, [{<<"e">>, 400}]}]}, {<<"b">>, [{<<"f">>, 200}]}],
+                         [{<<"b">>, [{<<"f">>, 200}]}, {<<"a">>, [{<<"d">>, [{<<"e">>, 400}]}, {<<"c">>, 300}]}]).
 
 
 t_member(_Config) ->
