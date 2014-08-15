@@ -20,6 +20,8 @@
 -export([set_path/3]).
 -export([set_value/3]).
 -export([set_values/2]).
+-export([take_value/2, take_value/3]).
+-export([take_values/2]).
 -export([with/2]).
 -export([without/2]).
 
@@ -390,6 +392,53 @@ set_values([{Key, Value} | Tail], List) ->
     set_values(Tail, set_value(Key, Value, List));
 set_values([], List) ->
     List.
+
+
+%% @equiv take_value(Key, List, undefined)
+-spec take_value(Key :: key(), List :: kvlist()) -> value() | undefined.
+take_value(Key, List) ->
+    take_value(Key, List, undefined).
+
+%% @doc Returns the value of a simple key/value property in <code>List</code>.
+%% If the <code>Key</code> is found in the list, this function returns a tuple
+%% with the corresponding <code>Value</code> and the <code>List</code> with
+%% this entry removed, otherwise it returns a tuple with <code>Default</code>
+%% and the original <code>List</code> is returned.
+%%
+%% @see get_value/2
+%% @see set_value/3
+%% @see take_values/2
+-spec take_value(Key :: key(), List :: kvlist(), Default :: value()) -> value().
+take_value(Key, List, Default) ->
+    case lists:keytake(Key, 1, List) of
+        {value, {_Key, Value}, NewList} -> {Value, NewList};
+        false                           -> {Default, List}
+    end.
+
+
+%% @doc Returns the list of values corresponding to the different <code>Keys</code>
+%% in <code>List</code>. If the entry in <code>Keys</code> is found in the
+%% <code>List</code>, this function returns the corresponding value and removes it
+%% from the <code>List</code>. If the entry is not found and it's a
+%% <code>{Key, Default}</code> tuple, <code>Default</code> is added to the returned
+%% list in its place and if the entry is just a <code>Key</code>, then
+%% <code>undefined</code> is added to the returned list.
+%%
+%% @see get_values/2
+%% @see set_values/2
+-spec take_values([Key :: key() | {Key :: key(), Default :: value()}],
+                  List :: kvlist()) -> {Values :: [value()], NewList :: kvlist()}.
+take_values(Keys, List) ->
+    take_values(Keys, List, []).
+
+take_values([{Key, Default} | Tail], List, Acc) ->
+    {Value, NewList} = take_value(Key, List, Default),
+    take_values(Tail, NewList, [Value | Acc]);
+take_values([Key | Tail], List, Acc) ->
+    {Value, NewList} = take_value(Key, List),
+    take_values(Tail, NewList, [Value | Acc]);
+take_values([], List, Acc) ->
+    {lists:reverse(Acc), List}.
 
 
 %% @doc Return a <code>NewList</code> where the <code>Key</code> of each
