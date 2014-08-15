@@ -237,8 +237,8 @@ get_value(Key, List) ->
 -spec get_value(Key :: key(), List :: kvlist(), Default :: value()) -> value().
 get_value(Key, List, Default) ->
     case lists:keyfind(Key, 1, List) of
-        {Key, Value} -> Value;
-        false        -> Default
+        {_Key, Value} -> Value;
+        false         -> Default
     end.
 
 
