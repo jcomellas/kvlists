@@ -81,6 +81,9 @@ The `kvlists` module also provides the following functions:
   * [set_path/3](#set_path3)
   * [set_value/3](#set_value3)
   * [set_values/2](#set_values2)
+  * [take_value/2](#take_value2)
+  * [take_value/3](#take_value3)
+  * [take_values/2](#take_values2)
   * [with/2](#with2)
   * [without/2](#without2)
 
@@ -552,6 +555,70 @@ Sets each `Key` in `List` to its corresponding `Value`.
 1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
 2> kvlists:set_values([{abc, 100}, {jkl, <<"JKL">>}], List).
 [{abc, 100}, {def, 456}, {ghi, 789}, {jkl, <<"JKL">>}]
+```
+
+-------------
+
+### take_value/2
+Equivalent to `take_value(Key, List, undefined)`.
+
+#### Specification
+```erlang
+-spec take_value(Key :: key(), List :: kvlist()) -> {value() | undefined, NewList :: kvlist()}.
+```
+#### Example
+```erlang
+1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
+2> kvlists:take_value(ghi, List).
+{789, [{abc, 123}, {def, 456}]}
+3> kvlists:take_value(jkl, List).
+{undefined, [{abc, 123}, {def, 456}, {ghi, 789}]}
+```
+
+-------------
+
+### take_value/3
+Returns the value of a simple key/value property in `List` and a `NewList`
+with the corresponding tuple removed. If the `Key` is found in the list,
+this function returns the corresponding `Value`, otherwise `Default` is
+returned in a tuple with the original `List`.
+
+#### Specification
+```erlang
+-spec take_value(Key :: path_key(), List :: kvlist(), Default :: value()) -> {value(), NewList :: kvlist()}.
+```
+#### Example
+```erlang
+1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
+2> kvlists:take_value(ghi, List, 100).
+{789, [{abc, 123}, {def, 456}]}
+3> kvlists:take_value(jkl, List, 100).
+{100, [{abc, 123}, {def, 456}, {ghi, 789}]}
+```
+
+-------------
+
+### take_values/2
+Returns a tuple with the list of values corresponding to the different `Keys`
+in `List` and a `NewList` with those key/value pairs removed. If the entry in
+`Keys` is found in the `List`, this function will add the corresponding value
+to the list of values removed. If the entry is not found and it's a
+`{Key, Default}` tuple, `Default` is added to the returned list in its place.
+Finally, if the entry is just a key and is not found, then `undefined` is
+added to the returned list.
+
+#### Specification
+```erlang
+-spec take_values([Key :: path_key() | {Key :: path_key(), Default :: value()}],
+                 List :: kvlist()) -> {Values :: [value()], NewList :: kvlist()}.
+```
+#### Example
+```erlang
+1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
+2> kvlists:take_values([ghi], List).
+{[789], [{abc, 123}, {def, 456}]}
+3> kvlists:take_values([abc, {def, 100}, ghi, {jkl, 200}], List).
+{[123, 456, 789, 200], []}
 ```
 
 -------------
