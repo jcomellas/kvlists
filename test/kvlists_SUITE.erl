@@ -557,4 +557,17 @@ t_match(_Config) ->
             ]
     } = kvlists:match(Expected, FailExtraKeyValue),
 
-    ok = kvlists:match(Expected, Expected).
+    ok = kvlists:match(Expected, Expected),
+
+    ExpectedNested = [{<<"three">>, <<"three">>}, {"nested", [{"nested_one", 1}, {<<"nested_two">>, "two"}]}],
+
+    FailNestedMismatchStringValue = [
+            {<<"three">>, <<"three">>},
+            {"nested", [{"nested_one", 1}, {<<"nested_two">>, "TWO"}]}
+            ],
+    {fail, [
+            {not_equal, {"/nested/nested_two", "two", "TWO"}}
+            ]
+    } = kvlists:match(ExpectedNested, FailNestedMismatchStringValue),
+
+    ok = kvlists:match(ExpectedNested, ExpectedNested).
