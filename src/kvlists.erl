@@ -8,6 +8,9 @@
 -module(kvlists).
 -author('Juan Jose Comellas <juanjo@comellas.org>').
 
+-define(MATCH_ANY,  any__).
+-define(UNEXPECTED, unexpected__).
+
 -export([delete_nth/2]).
 -export([delete_path/2]).
 -export([delete_value/2]).
@@ -15,6 +18,7 @@
 -export([get_value/2, get_value/3]).
 -export([get_values/2]).
 -export([get_path/2]).
+-export([match/2]).
 -export([member/2]).
 -export([set_nth/3]).
 -export([set_path/3]).
@@ -461,3 +465,94 @@ without(Keys, List) ->
 
 with_filter({Key, _Value}, Keys) -> lists:member(Key, Keys);
 with_filter(_Elem, _Keys)        -> false.
+
+
+% NOTE AJA: this code was based off of the compare logic from:
+%   https://github.com/klarna/katt/blob/master/src/katt_callback.erl#L214
+%-include_lib("kvlists_extras.hrl").
+
+%% @doc Return true if passed kvlists "match" where "match" means 
+%%   - all key-value pairs exist in both kvlists
+%%   - any value for key <code>"foo"</code> exists in <code>Actual</code>
+%%      when <code>Expected</code> contains <code>{"foo", any__}</code> item
+%%   - extra kev-value pairs exist in <code>Actual</code>
+%%      when <code>Expected</code> contains <code>{any__, any__}</code> item
+%% NOTE AJA: this code was based off of the compare logic from:
+%%   https://github.com/klarna/katt/blob/master/src/katt_callback.erl#L214
+-spec match(Expected :: kvlist(), Actual :: kvlist()) -> boolean().
+match(Expected, Actual) ->
+    case reduce_to_failures(match("", Expected, Actual, ?UNEXPECTED)) of
+        [] -> ok;
+        Failures -> {fail, Failures}
+    end.
+
+reduce_to_failures(Result) ->
+    lists:filter(
+            fun
+                (ok) -> false;
+                (_) -> true
+            end, lists:flatten([Result])).
+
+match(_Path, ?MATCH_ANY, _Actual, _Unexpected) ->
+    ok;
+match(Path, Expected, Actual = [{_,_}|_], _Unexpected) when is_list(Expected)  ->
+    Unexpected = proplists:get_value(?MATCH_ANY, Expected, ?UNEXPECTED),
+    Expected1 = proplists:delete(?MATCH_ANY, Expected),
+    Keys = lists:usort([K || {K, _} <- lists:merge(Expected1, Actual)]),
+    [ match(Path ++ "/" ++ to_list(K),
+            proplists:get_value(K, Expected1),
+            proplists:get_value(K, Actual),
+            Unexpected) || K <- Keys ];
+match(Path, Expected, [], _Unexpected) when is_list(Expected) ->
+    case lists:member(?UNEXPECTED, Expected) of
+        true when length(Expected) =/= 1 ->
+            fail;
+        _ ->
+            case Expected of
+                [{Path, NotUnexpected}] when NotUnexpected =/= ?UNEXPECTED ->
+                    {not_equal, {Path ++ "/" ++ Path, NotUnexpected, []}};
+                _ ->
+                    ok
+            end
+    end;
+match(Path, Expected, Actual = [[_|_]|_], _Unexpected) when is_list(Expected) ->
+    Unexpected = case lists:member(?UNEXPECTED, Expected) of
+        true -> ?UNEXPECTED;
+        false -> ?MATCH_ANY
+    end,
+    ExpectedEnumed = enumerate(lists:delete(?UNEXPECTED, lists:delete(?MATCH_ANY, Expected))),
+    ActualEnumed = enumerate(Actual),
+    Keys = lists:usort([K || {K, _} <- lists:merge(ExpectedEnumed, ActualEnumed)]),
+    [ match(Path ++ "/" ++ K,
+            proplists:get_value(K, ExpectedEnumed),
+            proplists:get_value(K, ActualEnumed),
+            Unexpected) || K <- Keys ];
+match(Path, Expected, Actual, Unexpected) ->
+    match_value(Path, Expected, Actual, Unexpected).
+
+% handle unexpected keys
+match_value(_Path, undefined, _Actual, ?MATCH_ANY) ->
+    ok;
+match_value(_Path, [], _Actual, ?MATCH_ANY) ->
+    ok;
+match_value(Path, undefined, Actual, ?UNEXPECTED) ->
+    {unexpected, {Path, undefined, Actual}};
+match_value(Path, undefined, Actual, Unexpected) ->
+    match_value(Path, Unexpected, Actual);
+match_value(Path, Expected, Actual, _Unexpected) ->
+    match_value(Path, Expected, Actual).
+
+% handle primitives
+match_value(_Path, ?MATCH_ANY, _Actual) ->
+    ok;
+match_value(_Path, Expected, Expected) ->
+    ok;
+match_value(Path, Expected, Actual) ->
+    {not_equal, {Path, Expected, Actual}}.
+
+to_list(Arg) when is_binary(Arg) -> binary_to_list(Arg);
+to_list(Arg) when is_list(Arg) -> Arg;
+to_list(Arg) -> [Arg].
+
+enumerate(L) ->
+    lists:zip([integer_to_list(N) || N <- lists:seq(1, length(L) - 1)], L).

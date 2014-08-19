@@ -47,6 +47,7 @@ groups() ->
        t_get_value,
        t_get_values,
        t_equal,
+       t_match,
        t_member,
        t_set_path,
        t_set_value,
@@ -507,3 +508,53 @@ t_without(_Config) ->
     [{<<"def">>, 456}, {<<"ghi">>, 789}] = kvlists:without([<<"abc">>, <<"jkl">>], BinList),
     [{<<"abc">>, 123}] = kvlists:without([<<"def">>, <<"ghi">>], BinList),
     [] = kvlists:without([<<"abc">>, <<"def">>, <<"ghi">>], BinList).
+
+
+t_match(_Config) ->
+    Expected = [{<<"three">>, <<"three">>}, {"five", "five"}],
+
+    FailActualStringExpectedBinaryValue = [{<<"three">>, "three"}, {"five", "five"}],
+    {fail, [
+            {not_equal, {"/three", <<"three">>, "three"}}
+            ]
+    } = kvlists:match(Expected, FailActualStringExpectedBinaryValue),
+    FailActualBinaryExpectedStringValue = [{<<"three">>, <<"three">>}, {"five", <<"five">>}],
+    {fail, [
+            {not_equal, {"/five", "five", <<"five">>}}
+            ]
+    } = kvlists:match(Expected, FailActualBinaryExpectedStringValue),
+    FailActualStringExpectedBinaryKey = [{"three", <<"three">>}, {"five", "five"}],
+    {fail, [
+            {unexpected, {"/three", undefined, <<"three">>}},
+            {not_equal, {"/three", <<"three">>, undefined}}
+            ]
+    } = kvlists:match(Expected, FailActualStringExpectedBinaryKey),
+    FailActualBinaryExpectedStringKey = [{<<"three">>, <<"three">>}, {<<"five">>, "five"}],
+    {fail, [
+            {not_equal, {"/five", "five", undefined}},
+            {unexpected, {"/five", undefined, "five"}}
+            ]
+    } = kvlists:match(Expected, FailActualBinaryExpectedStringKey),
+    FailMismatchBinaryValue = [{<<"three">>, <<"THREE">>}, {"five", "five"}],
+    {fail, [
+            {not_equal, {"/three", <<"three">>, <<"THREE">>}}
+            ]
+    } = kvlists:match(Expected, FailMismatchBinaryValue),
+    FailMismatchStringValue = [{<<"three">>, <<"three">>}, {"five", "FIVE"}],
+    {fail, [
+            {not_equal, {"/five", "five", "FIVE"}}
+            ]
+    } = kvlists:match(Expected, FailMismatchStringValue),
+
+    MatchAnyValueForKey = [{<<"three">>, <<"three">>}, {"five", "five"}, {"foo", "bar"}],
+    ok = kvlists:match(lists:merge(Expected, [{"foo", any__}]), MatchAnyValueForKey),
+    MatchExtraKeyValue = [{<<"three">>, <<"three">>}, {"five", "five"}, {"foo", "bar"}, {"baz", "ooga"}],
+    ok = kvlists:match(lists:merge(Expected, [{any__, any__}]), MatchExtraKeyValue),
+
+    FailExtraKeyValue = [{<<"three">>, <<"three">>}, {"five", "five"}, {"foo", "bar"}],
+    {fail, [
+            {unexpected, {"/foo", undefined, "bar"}}
+            ]
+    } = kvlists:match(Expected, FailExtraKeyValue),
+
+    ok = kvlists:match(Expected, Expected).
