@@ -556,7 +556,7 @@ to_list(Arg) when is_list(Arg) -> Arg;
 to_list(Arg) -> [Arg].
 
 enumerate(L) ->
-    lists:zip([integer_to_list(N) || N <- lists:seq(1, length(L) - 1)], L).
+    lists:zip([integer_to_list(N) || N <- lists:seq(1, length(L))], L).
 
 %% @doc Recursively overrides the values in kvlist <code>List<code>
 %%  with corresponding ones in <code>overrides</code>

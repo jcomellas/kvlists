@@ -571,8 +571,13 @@ t_match(_Config) ->
             ]
     } = kvlists:match(ExpectedNested, FailNestedMismatchStringValue),
 
-    ok = kvlists:match(ExpectedNested, ExpectedNested).
+    ok = kvlists:match(ExpectedNested, ExpectedNested),
 
+    ExpectedNestedArray = [{one, 1}, {nested, [
+                    [{n_one1, n_one_v1}, {n_two1, n_two_v1}],
+                    [{n_one2, n_one_v2}, {n_two2, n_two_v2}]
+                    ]}],
+    ok = kvlists:match(ExpectedNestedArray, ExpectedNestedArray).
 
 t_override(_Config) ->
     Orig = [{<<"one">>, 1}, {"two", "two"}, {three, three}],
