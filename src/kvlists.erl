@@ -505,17 +505,12 @@ match(Path, Expected, Actual = [{_,_}|_], _Unexpected) when is_list(Expected)  -
             proplists:get_value(K, Actual),
             Unexpected) || K <- Keys ];
 match(Path, Expected, [], _Unexpected) when is_list(Expected) ->
-    case lists:member(?UNEXPECTED, Expected) of
-        true when length(Expected) =/= 1 ->
-            fail;
-        _ ->
-            case Expected of
-                [{Path, NotUnexpected}] when NotUnexpected =/= ?UNEXPECTED ->
-                    {not_equal, {Path ++ "/" ++ Path, NotUnexpected, []}};
-                _ ->
-                    ok
-            end
-    end;
+    Unexpected = proplists:get_value(?MATCH_ANY, Expected, ?UNEXPECTED),
+    Expected1 = proplists:delete(?MATCH_ANY, Expected),
+    Keys = lists:usort(proplists:get_keys(Expected1)),
+    [ match(Path ++ "/" ++ to_list(K),
+            proplists:get_value(K, Expected1),
+            undefined, Unexpected) || K <- Keys ];
 match(Path, Expected, Actual = [[_|_]|_], _Unexpected) when is_list(Expected) ->
     Unexpected = case lists:member(?UNEXPECTED, Expected) of
         true -> ?UNEXPECTED;

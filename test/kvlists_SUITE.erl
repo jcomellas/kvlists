@@ -558,6 +558,13 @@ t_match(_Config) ->
             ]
     } = kvlists:match(Expected, FailExtraKeyValue),
 
+    ExpectedNestedKey = [{<<"three">>, <<"three">>}, {<<"nested">>, [{<<"foo">>, <<"bar">>}, {<<"baz">>, <<"ooga">>}]}],
+    FailMissingExpectedNestedKey = [{<<"three">>, <<"three">>}, {<<"nested">>, [{<<"baz">>, <<"ooga">>}]}],
+    {fail, [
+            {not_equal, {"/nested/foo", <<"bar">>, undefined}}
+            ]
+    } = kvlists:match(ExpectedNestedKey, FailMissingExpectedNestedKey),
+
     ok = kvlists:match(Expected, Expected),
 
     ExpectedNested = [{<<"three">>, <<"three">>}, {"nested", [{"nested_one", 1}, {<<"nested_two">>, "two"}]}],
@@ -573,11 +580,27 @@ t_match(_Config) ->
 
     ok = kvlists:match(ExpectedNested, ExpectedNested),
 
-    ExpectedNestedArray = [{one, 1}, {nested, [
-                    [{n_one1, n_one_v1}, {n_two1, n_two_v1}],
-                    [{n_one2, n_one_v2}, {n_two2, n_two_v2}]
+    ExpectedNestedArray = [{<<"one">>, 1}, {<<"nested">>, [
+                    {<<"n_one1">>, <<"n_one_v1">>}, {<<"n_two1">>, <<"n_two_v1">>}
                     ]}],
-    ok = kvlists:match(ExpectedNestedArray, ExpectedNestedArray).
+    OffNestedArray = [{<<"one">>, 1}, {<<"nested">>, [
+                    {<<"n_one1xxx">>, <<"n_one_v1">>}, {<<"n_two1">>, <<"n_two_v1">>}
+                    ]}],
+    {fail, [
+            {not_equal, {"/nested/n_one1", <<"n_one_v1">>, undefined}},
+            {unexpected, {"/nested/n_one1xxx", undefined, <<"n_one_v1">>}}
+            ]
+    } = kvlists:match(ExpectedNestedArray, OffNestedArray),
+
+    ok = kvlists:match(ExpectedNestedArray, ExpectedNestedArray),
+
+    {fail, [
+            {not_equal, {"/nested/foo", <<"bar">>, undefined}},
+            {not_equal, {"/nested/foo2", <<"bar2">>, undefined}}
+            ]
+    } = kvlists:match([{<<"nested">>, [{<<"foo">>, <<"bar">>},{<<"foo2">>, <<"bar2">>}]}], [{<<"nested">>, []}]),
+
+    ok.
 
 t_override(_Config) ->
     Orig = [{<<"one">>, 1}, {"two", "two"}, {three, three}],
