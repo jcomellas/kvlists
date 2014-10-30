@@ -406,7 +406,7 @@ The `Pattern` is evaluated sequentially from head to tail, but the key-value
 pairs in the `List` need not follow the same order that was used in the
 `Pattern`.
 
-The wildcard atom `'_'` will match any expression in the nesting level where
+The wildcard atom `'_'` will match any expression at the nesting level where
 it was added in the pattern. Some of the ways in which it can be used are:
 
 | If you want to match...              | Pattern                  |
