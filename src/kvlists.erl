@@ -508,7 +508,7 @@ override(Fun, L1, L2) ->
     override(Fun, lists:keysort(1, L1), lists:keysort(1, L2), []).
 
 override(Fun, [{Key, V1} | L1], [{Key, V2} | L2], Acc)
-        when is_list(V1) andalso is_list(V2) ->
+  when is_list(V1) andalso is_list(V2) ->
     override(Fun, L1, L2, [{Key, override(Fun, V1, V2)} | Acc]);
 override(Fun, [{Key, V1} | L1], [{Key, V2} | L2], Acc) ->
     override(Fun, L1, L2, [{Key, Fun(V1, V2)} | Acc]);
