@@ -258,6 +258,49 @@ get_values([], _List, Acc) ->
     lists:reverse(Acc).
 
 
+%% @doc Check that a <code>Pattern</code> represented by a kvlist where the
+%% <code>'_'</code> atom is used as a wildcard matches the <code>List</code>
+%% kvlist. Matching here means that:
+%%   - all key-value pairs exist in both kvlists.
+%%   - any value for key <code>foo</code> exists in <code>List</code> when the
+%%     <code>Pattern</code> contains the <code>{foo, term()}</code> item.
+%%   - extra key-value pairs exist in <code>List</code> when
+%%     the corresponding <code>Pattern</code> contains any use of the wildcard (<code>'_'</code>)
+%%     atom.
+-spec match(Pattern :: kvlist(), List :: kvlist()) -> boolean().
+match('_', _Element) ->
+    true;
+match(Element, Element) when not is_list(Element) ->
+    true;
+match([{'_', '_'} | _Tail1], _List2) ->
+    true;
+match([{'_', Value} | _Tail1], List2) ->
+    match_value(Value, List2);
+match([{Key, '_'} | Tail1], List2) ->
+    {_Value2, Tail2} = kvlists:take_value(Key, List2),
+    match(Tail1, Tail2);
+match([{Key, Value1} | Tail1], List2) ->
+    case lists:keytake(Key, 1, List2) of
+        {value, {Key, Value2}, Tail2} ->
+            match(Value1, Value2) andalso match(Tail1, Tail2);
+        false ->
+            false
+    end;
+match([Head1 | Tail1], [Head2 | Tail2])->
+  match(Head1, Head2) andalso match(Tail1, Tail2);
+match([], []) ->
+    true;
+match(_List1, _List2) ->
+    false.
+
+match_value(Value, [{_Key, Value} | Tail]) ->
+    match_value(Value, Tail);
+match_value(_Value, [_ | _]) ->
+    false;
+match_value(_Value, []) ->
+    true.
+
+
 %% @doc Returns <code>true</code> if there is an entry in <code>List</code>
 %% whose key is equal to <code>Key</code>, otherwise <code>false</code>.
 -spec member(Key :: key(), List :: kvlist()) -> boolean().
@@ -454,91 +497,6 @@ without(Keys, List) ->
 with_filter({Key, _Value}, Keys) -> lists:member(Key, Keys);
 with_filter(_Elem, _Keys)        -> false.
 
-
-% NOTE AJA: this code was based off of the compare logic from:
-%   https://github.com/klarna/katt/blob/master/src/katt_callback.erl#L214
-%-include_lib("kvlists_extras.hrl").
-
-%% @doc Return true if passed kvlists "match" where "match" means 
-%%   - all key-value pairs exist in both kvlists
-%%   - any value for key <code>"foo"</code> exists in <code>Actual</code>
-%%      when <code>Expected</code> contains <code>{"foo", any__}</code> item
-%%   - extra kev-value pairs exist in <code>Actual</code>
-%%      when <code>Expected</code> contains <code>{any__, any__}</code> item
-%% NOTE AJA: this code was based off of the compare logic from:
-%%   https://github.com/klarna/katt/blob/master/src/katt_callback.erl#L214
--spec match(Expected :: kvlist(), Actual :: kvlist()) -> boolean().
-match(Expected, Actual) ->
-    case reduce_to_failures(match("", Expected, Actual, ?UNEXPECTED)) of
-        [] -> ok;
-        Failures -> {fail, Failures}
-    end.
-
-reduce_to_failures(Result) ->
-    lists:filter(
-            fun
-                (ok) -> false;
-                (_) -> true
-            end, lists:flatten([Result])).
-
-match(_Path, ?MATCH_ANY, _Actual, _Unexpected) ->
-    ok;
-match(Path, Expected, Actual = [{_,_}|_], _Unexpected) when is_list(Expected)  ->
-    Unexpected = proplists:get_value(?MATCH_ANY, Expected, ?UNEXPECTED),
-    Expected1 = proplists:delete(?MATCH_ANY, Expected),
-    Keys = lists:usort([K || {K, _} <- lists:merge(Expected1, Actual)]),
-    [ match(Path ++ "/" ++ to_list(K),
-            proplists:get_value(K, Expected1),
-            proplists:get_value(K, Actual),
-            Unexpected) || K <- Keys ];
-match(Path, Expected, [], _Unexpected) when is_list(Expected) ->
-    Unexpected = proplists:get_value(?MATCH_ANY, Expected, ?UNEXPECTED),
-    Expected1 = proplists:delete(?MATCH_ANY, Expected),
-    Keys = lists:usort(proplists:get_keys(Expected1)),
-    [ match(Path ++ "/" ++ to_list(K),
-            proplists:get_value(K, Expected1),
-            undefined, Unexpected) || K <- Keys ];
-match(Path, Expected, Actual = [[_|_]|_], _Unexpected) when is_list(Expected) ->
-    Unexpected = case lists:member(?UNEXPECTED, Expected) of
-        true -> ?UNEXPECTED;
-        false -> ?MATCH_ANY
-    end,
-    ExpectedEnumed = enumerate(lists:delete(?UNEXPECTED, lists:delete(?MATCH_ANY, Expected))),
-    ActualEnumed = enumerate(Actual),
-    Keys = lists:usort([K || {K, _} <- lists:merge(ExpectedEnumed, ActualEnumed)]),
-    [ match(Path ++ "/" ++ K,
-            proplists:get_value(K, ExpectedEnumed),
-            proplists:get_value(K, ActualEnumed),
-            Unexpected) || K <- Keys ];
-match(Path, Expected, Actual, Unexpected) ->
-    match_value(Path, Expected, Actual, Unexpected).
-
-% handle unexpected keys
-match_value(_Path, undefined, _Actual, ?MATCH_ANY) ->
-    ok;
-match_value(_Path, [], _Actual, ?MATCH_ANY) ->
-    ok;
-match_value(Path, undefined, Actual, ?UNEXPECTED) ->
-    {unexpected, {Path, undefined, Actual}};
-match_value(Path, undefined, Actual, Unexpected) ->
-    match_value(Path, Unexpected, Actual);
-match_value(Path, Expected, Actual, _Unexpected) ->
-    match_value(Path, Expected, Actual).
-
-% handle primitives
-match_value(_Path, ?MATCH_ANY, _Actual) ->
-    ok;
-match_value(_Path, Expected, Expected) ->
-    ok;
-match_value(Path, Expected, Actual) ->
-    {not_equal, {Path, Expected, Actual}}.
-
-to_list(Arg) when is_binary(Arg) -> binary_to_list(Arg);
-to_list(Arg) when is_list(Arg) -> Arg;
-to_list(Arg) -> [Arg].
-
-enumerate(L) ->
-    lists:zip([integer_to_list(N) || N <- lists:seq(1, length(L))], L).
 
 %% @doc Recursively overrides the values in kvlist <code>List<code>
 %%  with corresponding ones in <code>overrides</code>
