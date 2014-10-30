@@ -271,10 +271,10 @@ get_values([], _List, Acc) ->
 %% level where it was added in the pattern. Some of the ways in which it can
 %% be used are:
 %%
-%% - To match any value for key `foo`, use the key-value pair `{foo, '_'}`.
-%% - To match all keys with the same value, use `{'_' Value}`.
-%% - To match any key-value pair use `{'_' '_'}`.
-%% - To match anything (including key-value pairs) use `'_'`.
+%% - To match any value for key <code>foo</code>, use the key-value pair <code>{foo, '_'}</code>.
+%% - To match all keys with the same value, use <code>{'_' Value}</code>.
+%% - To match any key-value pair use <code>{'_' '_'}</code>.
+%% - To match anything (including key-value pairs) use <code>'_'</code>.
 %%
 %% The matching rules are applied recursively when the kvlist is nested.
 -spec match(Pattern :: kvlist(), List :: kvlist()) -> boolean().
