@@ -20,7 +20,6 @@
 -export([get_path/2]).
 -export([match/2]).
 -export([member/2]).
--export([override/2]).
 -export([set_nth/3]).
 -export([set_path/3]).
 -export([set_value/3]).
@@ -508,29 +507,3 @@ without(Keys, List) ->
 
 with_filter({Key, _Value}, Keys) -> lists:member(Key, Keys);
 with_filter(_Elem, _Keys)        -> false.
-
-
-%% @doc Recursively overrides the values in kvlist <code>List<code>
-%%  with corresponding ones in <code>overrides</code>
--spec override(List :: kvlist(), Overrides :: kvlist()) -> kvlist().
-override(List, Overrides) ->
-    override(fun(_X,Override) -> Override end, List, Overrides).
-
-override(Fun, L1, L2) ->
-    override(Fun, lists:keysort(1, L1), lists:keysort(1, L2), []).
-
-override(Fun, [{Key, V1} | L1], [{Key, V2} | L2], Acc)
-  when is_list(V1) andalso is_list(V2) ->
-    override(Fun, L1, L2, [{Key, override(Fun, V1, V2)} | Acc]);
-override(Fun, [{Key, V1} | L1], [{Key, V2} | L2], Acc) ->
-    override(Fun, L1, L2, [{Key, Fun(V1, V2)} | Acc]);
-override(Fun, [], [{Key, V} | L], Acc) ->
-    override(Fun, [], L, [{Key, V} | Acc]);
-override(Fun, [{Key, V} | L], [], Acc) ->
-    override(Fun, L, [], [{Key, V} | Acc]);
-override(Fun, [{Key1, V1} | L1], [{Key2, V2} | L2], Acc) when Key1 < Key2 ->
-    override(Fun, L1, [{Key2, V2} | L2], [{Key1, V1} | Acc]);
-override(Fun, L1, [{Key, V} | L2], Acc) ->
-    override(Fun, L1, L2, [{Key, V} | Acc]);
-override(_Fun, [], [], Acc) ->
-    Acc.

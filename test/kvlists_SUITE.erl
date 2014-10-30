@@ -49,7 +49,6 @@ groups() ->
        t_equal,
        t_match,
        t_member,
-       t_override,
        t_set_path,
        t_set_value,
        t_set_values,
@@ -608,19 +607,3 @@ t_without(_Config) ->
     [{<<"def">>, 456}, {<<"ghi">>, 789}] = kvlists:without([<<"abc">>, <<"jkl">>], BinList),
     [{<<"abc">>, 123}] = kvlists:without([<<"def">>, <<"ghi">>], BinList),
     [] = kvlists:without([<<"abc">>, <<"def">>, <<"ghi">>], BinList).
-
-
-t_override(_Config) ->
-    Orig = [{<<"one">>, 1}, {"two", "two"}, {three, three}],
-
-    [{<<"one">>, 1}, {"two", "two"}, {three, 3}] = kvlists:override(Orig, [{three, 3}]),
-    [{<<"one">>, 1}, {"two", 2}, {three, three}] = kvlists:override(Orig, [{"two", 2}]),
-    [{<<"one">>, 1}, {"two", "two"}, {two, 2}, {three, three}] = kvlists:override(Orig, [{two, 2}]),
-    [{<<"one">>, 1}, {"two", "two"}, {three, three}, {four, 4}] = kvlists:override(Orig, [{four, 4}]),
-
-    OrigNested = [{<<"one">>, 1}, {nested, [{n_one, "n1"}, {n_two, "n2"}]}],
-    [{<<"one">>, 1}, {nested, [ {n_two, 2}, {n_one, "n1"}]}]
-            = kvlists:override(OrigNested, [{nested, [{n_two, 2}]}]),
-    [{<<"one">>, 1}, {nested, [{n_two, "n2"}, {n_three, three}, {n_one, "n1"}]}]
-            = kvlists:override(OrigNested, [{nested, [{n_three, three}]}]),
-    ok.
