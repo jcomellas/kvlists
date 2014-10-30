@@ -83,7 +83,7 @@ t_delete_path(_Config) ->
                 {points, 22049},
                 {site_id, <<"MLA">>},
                 {permalink, <<"http://perfil.mercadolibre.com.ar/MIPCSTORE">>},
-                {seller_reputation,
+                {seller,
                  [{level_id, <<"5_green">>},
                   {power_seller_status, <<"platinum">>},
                   {transactions,
@@ -99,13 +99,13 @@ t_delete_path(_Config) ->
     Check(id, AtomList),
     Check([nickname], AtomList),
     Check([address, city], AtomList),
-    Check([seller_reputation, transactions, ratings, 1, percent], AtomList),
-    Check([seller_reputation, transactions, ratings, 2, type], AtomList),
-    Check([seller_reputation, transactions, ratings, 3, percent], AtomList),
+    Check([seller, transactions, ratings, 1, percent], AtomList),
+    Check([seller, transactions, ratings, 2, type], AtomList),
+    Check([seller, transactions, ratings, 3, percent], AtomList),
     Check([status, site_status], AtomList),
-    Check([seller_reputation, transactions, ratings, percent], AtomList),
-    Check([seller_reputation, transactions, ratings, {type, negative}], AtomList),
-    Check([seller_reputation, transactions, ratings, {type, negative}, percent], AtomList),
+    Check([seller, transactions, ratings, percent], AtomList),
+    Check([seller, transactions, ratings, {type, negative}], AtomList),
+    Check([seller, transactions, ratings, {type, negative}, percent], AtomList),
     %% Kvlist with binaries as keys
     BinList = [{<<"id">>, 25679280},
                {<<"nickname">>, <<"MIPCSTORE">>},
@@ -118,7 +118,7 @@ t_delete_path(_Config) ->
                {<<"points">>, 22049},
                {<<"site_id">>, <<"MLA">>},
                {<<"permalink">>, <<"http://perfil.mercadolibre.com.ar/MIPCSTORE">>},
-               {<<"seller_reputation">>,
+               {<<"seller">>,
                 [{<<"level_id">>, <<"5_green">>},
                  {<<"power_seller_status">>, <<"platinum">>},
                  {<<"transactions">>,
@@ -133,13 +133,13 @@ t_delete_path(_Config) ->
     Check(<<"id">>, BinList),
     Check([<<"nickname">>], BinList),
     Check([<<"address">>, <<"city">>], BinList),
-    Check([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, 1, <<"percent">>], BinList),
-    Check([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, 2, <<"type">>], BinList),
-    Check([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, 3, <<"percent">>], BinList),
+    Check([<<"seller">>, <<"transactions">>, <<"ratings">>, 1, <<"percent">>], BinList),
+    Check([<<"seller">>, <<"transactions">>, <<"ratings">>, 2, <<"type">>], BinList),
+    Check([<<"seller">>, <<"transactions">>, <<"ratings">>, 3, <<"percent">>], BinList),
     Check([<<"status">>, <<"site_status">>], BinList),
-    Check([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, <<"percent">>], BinList),
-    Check([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, {<<"type">>, negative}], BinList),
-    Check([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, {<<"type">>, negative}, <<"percent">>], BinList).
+    Check([<<"seller">>, <<"transactions">>, <<"ratings">>, <<"percent">>], BinList),
+    Check([<<"seller">>, <<"transactions">>, <<"ratings">>, {<<"type">>, negative}], BinList),
+    Check([<<"seller">>, <<"transactions">>, <<"ratings">>, {<<"type">>, negative}, <<"percent">>], BinList).
 
 
 t_delete_value(_Config) ->
@@ -168,7 +168,7 @@ t_get_path(_Config) ->
                 {points, 22049},
                 {site_id, <<"MLA">>},
                 {permalink, <<"http://perfil.mercadolibre.com.ar/MIPCSTORE">>},
-                {seller_reputation,
+                {seller,
                  [{level_id, <<"5_green">>},
                   {power_seller_status, <<"platinum">>},
                   {transactions,
@@ -184,18 +184,18 @@ t_get_path(_Config) ->
     25679280          = kvlists:get_path(id, AtomList),
     <<"MIPCSTORE">>   = kvlists:get_path([nickname], AtomList),
     <<"Recoleta">>    = kvlists:get_path([address, city], AtomList),
-    [99, 0, 1]        = kvlists:get_path([seller_reputation, transactions,
+    [99, 0, 1]        = kvlists:get_path([seller, transactions,
                                           ratings, percent], AtomList),
-    99                = kvlists:get_path([seller_reputation, transactions,
+    99                = kvlists:get_path([seller, transactions,
                                           ratings, 1, percent], AtomList),
-    negative          = kvlists:get_path([seller_reputation, transactions,
+    negative          = kvlists:get_path([seller, transactions,
                                           ratings, 2, type], AtomList),
-    1                 = kvlists:get_path([seller_reputation, transactions,
+    1                 = kvlists:get_path([seller, transactions,
                                           ratings, 3, percent], AtomList),
     <<"active">>      = kvlists:get_path([status, site_status], AtomList),
-    0                 = kvlists:get_path([seller_reputation, transactions,
+    0                 = kvlists:get_path([seller, transactions,
                                           ratings, {type, negative}, percent], AtomList),
-    []                = kvlists:get_path([seller_reputation, transactions,
+    []                = kvlists:get_path([seller, transactions,
                                           ratings, 1, 1, 1], AtomList),
     %% Kvlist with binaries as keys
     BinList = [{<<"id">>, 25679280},
@@ -209,7 +209,7 @@ t_get_path(_Config) ->
                {<<"points">>, 22049},
                {<<"site_id">>, <<"MLA">>},
                {<<"permalink">>, <<"http://perfil.mercadolibre.com.ar/MIPCSTORE">>},
-               {<<"seller_reputation">>,
+               {<<"seller">>,
                 [{<<"level_id">>, <<"5_green">>},
                  {<<"power_seller_status">>, <<"platinum">>},
                  {<<"transactions">>,
@@ -224,18 +224,18 @@ t_get_path(_Config) ->
     25679280          = kvlists:get_path(<<"id">>, BinList),
     <<"MIPCSTORE">>   = kvlists:get_path([<<"nickname">>], BinList),
     <<"Recoleta">>    = kvlists:get_path([<<"address">>, <<"city">>], BinList),
-    [99, 0, 1]        = kvlists:get_path([<<"seller_reputation">>, <<"transactions">>,
+    [99, 0, 1]        = kvlists:get_path([<<"seller">>, <<"transactions">>,
                                           <<"ratings">>, <<"percent">>], BinList),
-    99                = kvlists:get_path([<<"seller_reputation">>, <<"transactions">>,
+    99                = kvlists:get_path([<<"seller">>, <<"transactions">>,
                                           <<"ratings">>, 1, <<"percent">>], BinList),
-    negative          = kvlists:get_path([<<"seller_reputation">>, <<"transactions">>,
+    negative          = kvlists:get_path([<<"seller">>, <<"transactions">>,
                                           <<"ratings">>, 2, <<"type">>], BinList),
-    1                 = kvlists:get_path([<<"seller_reputation">>, <<"transactions">>,
+    1                 = kvlists:get_path([<<"seller">>, <<"transactions">>,
                                           <<"ratings">>, 3, <<"percent">>], BinList),
     <<"active">>      = kvlists:get_path([<<"status">>, <<"site_status">>], BinList),
-    0                 = kvlists:get_path([<<"seller_reputation">>, <<"transactions">>,
+    0                 = kvlists:get_path([<<"seller">>, <<"transactions">>,
                                           <<"ratings">>, {<<"type">>, negative}, <<"percent">>], BinList),
-    []                = kvlists:get_path([<<"seller_reputation">>, <<"transactions">>,
+    []                = kvlists:get_path([<<"seller">>, <<"transactions">>,
                                           <<"ratings">>, 1, 1, 1], BinList).
 
 
@@ -336,7 +336,7 @@ t_set_path(_Config) ->
                 {points, 22049},
                 {site_id, <<"MLA">>},
                 {permalink, <<"http://perfil.mercadolibre.com.ar/MIPCSTORE">>},
-                {seller_reputation,
+                {seller,
                  [{level_id, <<"5_green">>},
                   {power_seller_status, <<"platinum">>},
                   {transactions,
@@ -353,22 +353,22 @@ t_set_path(_Config) ->
     Check(id, 1000, AtomList),
     Check([nickname], <<"MYNAME">>, AtomList),
     Check([address, city], <<"Other City">>, AtomList),
-    Check([seller_reputation, transactions, ratings, 1, percent], 199, AtomList),
-    Check([seller_reputation, transactions, ratings, 2, type], unknown, AtomList),
-    Check([seller_reputation, transactions, ratings, 3, percent], 11, AtomList),
+    Check([seller, transactions, ratings, 1, percent], 199, AtomList),
+    Check([seller, transactions, ratings, 2, type], unknown, AtomList),
+    Check([seller, transactions, ratings, 3, percent], 11, AtomList),
     Check([status, site_status], <<"inactive">>, AtomList),
-    Check([seller_reputation, transactions, ratings, {type, negative}, percent], 20, AtomList),
+    Check([seller, transactions, ratings, {type, negative}, percent], 20, AtomList),
     %% Test setting multiple values at the same time
-    AtomList1 = kvlists:set_path([seller_reputation, transactions, ratings, percent], [10, 20, 30, 40], AtomList),
-    10 = kvlists:get_path([seller_reputation, transactions, ratings, 1, percent], AtomList1),
-    20 = kvlists:get_path([seller_reputation, transactions, ratings, 2, percent], AtomList1),
-    30 = kvlists:get_path([seller_reputation, transactions, ratings, 3, percent], AtomList1),
-    40 = kvlists:get_path([seller_reputation, transactions, ratings, 4, percent], AtomList1),
-    AtomList2 = kvlists:set_path([seller_reputation, transactions, ratings, percent], 123, AtomList),
-    123 = kvlists:get_path([seller_reputation, transactions, ratings, 1, percent], AtomList2),
-    123 = kvlists:get_path([seller_reputation, transactions, ratings, 2, percent], AtomList2),
-    123 = kvlists:get_path([seller_reputation, transactions, ratings, 3, percent], AtomList2),
-    []  = kvlists:get_path([seller_reputation, transactions, ratings, 4, percent], AtomList2),
+    AtomList1 = kvlists:set_path([seller, transactions, ratings, percent], [10, 20, 30, 40], AtomList),
+    10 = kvlists:get_path([seller, transactions, ratings, 1, percent], AtomList1),
+    20 = kvlists:get_path([seller, transactions, ratings, 2, percent], AtomList1),
+    30 = kvlists:get_path([seller, transactions, ratings, 3, percent], AtomList1),
+    40 = kvlists:get_path([seller, transactions, ratings, 4, percent], AtomList1),
+    AtomList2 = kvlists:set_path([seller, transactions, ratings, percent], 123, AtomList),
+    123 = kvlists:get_path([seller, transactions, ratings, 1, percent], AtomList2),
+    123 = kvlists:get_path([seller, transactions, ratings, 2, percent], AtomList2),
+    123 = kvlists:get_path([seller, transactions, ratings, 3, percent], AtomList2),
+    []  = kvlists:get_path([seller, transactions, ratings, 4, percent], AtomList2),
     %% Kvlist with binaries as keys
     BinList = [{<<"id">>, 25679280},
                {<<"nickname">>, <<"MIPCSTORE">>},
@@ -381,7 +381,7 @@ t_set_path(_Config) ->
                {<<"points">>, 22049},
                {<<"site_id">>, <<"MLA">>},
                {<<"permalink">>, <<"http://perfil.mercadolibre.com.ar/MIPCSTORE">>},
-               {<<"seller_reputation">>,
+               {<<"seller">>,
                 [{<<"level_id">>, <<"5_green">>},
                  {<<"power_seller_status">>, <<"platinum">>},
                  {<<"transactions">>,
@@ -396,22 +396,22 @@ t_set_path(_Config) ->
     Check(<<"id">>, 25679280, BinList),
     Check([<<"nickname">>], <<"MYNAME">>, BinList),
     Check([<<"address">>, <<"city">>], <<"Other City">>, BinList),
-    Check([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, 1, <<"percent">>], 199, BinList),
-    Check([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, 2, <<"type">>], unknown, BinList),
-    Check([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, 3, <<"percent">>], 11, BinList),
+    Check([<<"seller">>, <<"transactions">>, <<"ratings">>, 1, <<"percent">>], 199, BinList),
+    Check([<<"seller">>, <<"transactions">>, <<"ratings">>, 2, <<"type">>], unknown, BinList),
+    Check([<<"seller">>, <<"transactions">>, <<"ratings">>, 3, <<"percent">>], 11, BinList),
     Check([<<"status">>, <<"site_status">>], <<"active">>, BinList),
     %% Test setting multiple values at the same time
-    BinList1 = kvlists:set_path([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, <<"percent">>],
+    BinList1 = kvlists:set_path([<<"seller">>, <<"transactions">>, <<"ratings">>, <<"percent">>],
                                  [10, 20, 30, 40], BinList),
-    10 = kvlists:get_path([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, 1, <<"percent">>], BinList1),
-    20 = kvlists:get_path([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, 2, <<"percent">>], BinList1),
-    30 = kvlists:get_path([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, 3, <<"percent">>], BinList1),
-    40 = kvlists:get_path([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, 4, <<"percent">>], BinList1),
-    BinList2 = kvlists:set_path([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, <<"percent">>], 123, BinList),
-    123 = kvlists:get_path([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, 1, <<"percent">>], BinList2),
-    123 = kvlists:get_path([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, 2, <<"percent">>], BinList2),
-    123 = kvlists:get_path([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, 3, <<"percent">>], BinList2),
-    []  = kvlists:get_path([<<"seller_reputation">>, <<"transactions">>, <<"ratings">>, 4, <<"percent">>], BinList2).
+    10 = kvlists:get_path([<<"seller">>, <<"transactions">>, <<"ratings">>, 1, <<"percent">>], BinList1),
+    20 = kvlists:get_path([<<"seller">>, <<"transactions">>, <<"ratings">>, 2, <<"percent">>], BinList1),
+    30 = kvlists:get_path([<<"seller">>, <<"transactions">>, <<"ratings">>, 3, <<"percent">>], BinList1),
+    40 = kvlists:get_path([<<"seller">>, <<"transactions">>, <<"ratings">>, 4, <<"percent">>], BinList1),
+    BinList2 = kvlists:set_path([<<"seller">>, <<"transactions">>, <<"ratings">>, <<"percent">>], 123, BinList),
+    123 = kvlists:get_path([<<"seller">>, <<"transactions">>, <<"ratings">>, 1, <<"percent">>], BinList2),
+    123 = kvlists:get_path([<<"seller">>, <<"transactions">>, <<"ratings">>, 2, <<"percent">>], BinList2),
+    123 = kvlists:get_path([<<"seller">>, <<"transactions">>, <<"ratings">>, 3, <<"percent">>], BinList2),
+    []  = kvlists:get_path([<<"seller">>, <<"transactions">>, <<"ratings">>, 4, <<"percent">>], BinList2).
 
 
 t_set_value(_Config) ->
@@ -512,95 +512,101 @@ t_without(_Config) ->
 
 
 t_match(_Config) ->
-    Expected = [{<<"three">>, <<"three">>}, {"five", "five"}],
+    SimpleList = [{abc, 123}, {def, 456}, {ghi, 456}],
+    true = kvlists:match(SimpleList, SimpleList),
+    true = kvlists:match([{ghi, 456}, {def, 456}, {abc, 123}], SimpleList),
+    true = kvlists:match('_', SimpleList),
+    true = kvlists:match([{'_', '_'}], SimpleList),
+    true = kvlists:match([{abc, '_'}, {def, 456}, {ghi, 456}], SimpleList),
+    true = kvlists:match([{def, 456}, {abc, '_'}, {ghi, 456}], SimpleList),
+    true = kvlists:match([{abc, '_'}, {def, '_'}, {ghi, 456}], SimpleList),
+    true = kvlists:match([{abc, '_'}, {'_', '_'}], SimpleList),
+    true = kvlists:match([{abc, '_'}, {'_', 456}], SimpleList),
+    %% Kvlist with atoms as keys
+    AtomList = [{id, 25679280},
+                {nickname, <<"MIPCSTORE">>},
+                {registration_date, {{2010, 3, 15}, {13, 17, 41}}},
+                {country_id, <<"AR">>},
+                {address, [{state, <<"AR-C">>}, {city, <<"Recoleta">>}]},
+                {user_type, <<"normal">>},
+                {tags, [<<"normal">>]},
+                {logo, null},
+                {points, 22049},
+                {site_id, <<"MLA">>},
+                {permalink, <<"http://perfil.mercadolibre.com.ar/MIPCSTORE">>},
+                {seller,
+                 [{level_id, <<"5_green">>},
+                  {power_seller_status, <<"platinum">>},
+                  {transactions,
+                   [{period, <<"3 months">>},
+                    {total, 3659},
+                    {completed, 3381},
+                    {canceled, 278},
+                    {ratings, [[{type, positive}, {percent, 99}],
+                               [{type, negative}, {percent, 0}],
+                               [{type, neutral}, {percent, 1}]]}]}]},
+                {status,[{site_status,<<"active">>}]}],
+    true = kvlists:match(AtomList, AtomList),
+    true = kvlists:match(AtomList, lists:sort(AtomList)),
+    true = kvlists:match('_', AtomList),
+    true = kvlists:match([{'_', '_'}], AtomList),
+    true = kvlists:match([{nickname, <<"MIPCSTORE">>},
+                          {tags, [<<"normal">>]},
+                          {'_', '_'}], AtomList),
+    true = kvlists:match([{seller, [{transactions, [{total, '_'},
+                                                    {ratings,
+                                                     [
+                                                      [{type, positive}, '_'],
+                                                      [{type, negative}, {percent, '_'}],
+                                                      '_'
+                                                     ]},
+                                                    {'_', '_'}]},
+                                    {level_id, <<"5_green">>},
+                                    {'_', '_'}]},
+                          {'_', '_'}], AtomList),
+    %% Kvlist with binaries as keys
+    BinList = [{<<"id">>, 25679280},
+               {<<"nickname">>, <<"MIPCSTORE">>},
+               {<<"registration_date">>, {{2010, 3, 15}, {13, 17, 41}}},
+               {<<"country_id">>, <<"AR">>},
+               {<<"address">>, [{<<"state">>, <<"AR-C">>}, {<<"city">>, <<"Recoleta">>}]},
+               {<<"user_type">>, <<"normal">>},
+               {<<"tags">>, [<<"normal">>]},
+               {<<"logo">>, null},
+               {<<"points">>, 22049},
+               {<<"site_id">>, <<"MLA">>},
+               {<<"permalink">>, <<"http://perfil.mercadolibre.com.ar/MIPCSTORE">>},
+               {<<"seller">>,
+                [{<<"level_id">>, <<"5_green">>},
+                 {<<"power_seller_status">>, <<"platinum">>},
+                 {<<"transactions">>,
+                  [{<<"period">>, <<"3 months">>},
+                   {<<"total">>, 3659},
+                   {<<"completed">>, 3381},
+                   {<<"canceled">>, 278},
+                   {<<"ratings">>, [[{<<"type">>, positive}, {<<"percent">>, 99}],
+                              [{<<"type">>, negative}, {<<"percent">>, 0}],
+                              [{<<"type">>, neutral}, {<<"percent">>, 1}]]}]}]},
+               {<<"status">>,[{<<"site_status">>,<<"active">>}]}],
+    true = kvlists:match(BinList, BinList),
+    true = kvlists:match(BinList, lists:sort(BinList)),
+    true = kvlists:match('_', BinList),
+    true = kvlists:match([{'_', '_'}], BinList),
+    true = kvlists:match([{<<"nickname">>, <<"MIPCSTORE">>},
+                          {<<"tags">>, [<<"normal">>]},
+                          {'_', '_'}], BinList),
+    true = kvlists:match([{<<"seller">>, [{<<"transactions">>, [{<<"total">>, '_'},
+                                                                {<<"ratings">>,
+                                                                 [
+                                                                  [{<<"type">>, positive}, '_'],
+                                                                  [{<<"type">>, negative}, {<<"percent">>, '_'}],
+                                                                  '_'
+                                                                 ]},
+                                                                {'_', '_'}]},
+                                          {<<"level_id">>, <<"5_green">>},
+                                          {'_', '_'}]},
+                          {'_', '_'}], BinList).
 
-    FailActualStringExpectedBinaryValue = [{<<"three">>, "three"}, {"five", "five"}],
-    {fail, [
-            {not_equal, {"/three", <<"three">>, "three"}}
-            ]
-    } = kvlists:match(Expected, FailActualStringExpectedBinaryValue),
-    FailActualBinaryExpectedStringValue = [{<<"three">>, <<"three">>}, {"five", <<"five">>}],
-    {fail, [
-            {not_equal, {"/five", "five", <<"five">>}}
-            ]
-    } = kvlists:match(Expected, FailActualBinaryExpectedStringValue),
-    FailActualStringExpectedBinaryKey = [{"three", <<"three">>}, {"five", "five"}],
-    {fail, [
-            {unexpected, {"/three", undefined, <<"three">>}},
-            {not_equal, {"/three", <<"three">>, undefined}}
-            ]
-    } = kvlists:match(Expected, FailActualStringExpectedBinaryKey),
-    FailActualBinaryExpectedStringKey = [{<<"three">>, <<"three">>}, {<<"five">>, "five"}],
-    {fail, [
-            {not_equal, {"/five", "five", undefined}},
-            {unexpected, {"/five", undefined, "five"}}
-            ]
-    } = kvlists:match(Expected, FailActualBinaryExpectedStringKey),
-    FailMismatchBinaryValue = [{<<"three">>, <<"THREE">>}, {"five", "five"}],
-    {fail, [
-            {not_equal, {"/three", <<"three">>, <<"THREE">>}}
-            ]
-    } = kvlists:match(Expected, FailMismatchBinaryValue),
-    FailMismatchStringValue = [{<<"three">>, <<"three">>}, {"five", "FIVE"}],
-    {fail, [
-            {not_equal, {"/five", "five", "FIVE"}}
-            ]
-    } = kvlists:match(Expected, FailMismatchStringValue),
-
-    MatchAnyValueForKey = [{<<"three">>, <<"three">>}, {"five", "five"}, {"foo", "bar"}],
-    ok = kvlists:match(lists:merge(Expected, [{"foo", any__}]), MatchAnyValueForKey),
-    MatchExtraKeyValue = [{<<"three">>, <<"three">>}, {"five", "five"}, {"foo", "bar"}, {"baz", "ooga"}],
-    ok = kvlists:match(lists:merge(Expected, [{any__, any__}]), MatchExtraKeyValue),
-
-    FailExtraKeyValue = [{<<"three">>, <<"three">>}, {"five", "five"}, {"foo", "bar"}],
-    {fail, [
-            {unexpected, {"/foo", undefined, "bar"}}
-            ]
-    } = kvlists:match(Expected, FailExtraKeyValue),
-
-    ExpectedNestedKey = [{<<"three">>, <<"three">>}, {<<"nested">>, [{<<"foo">>, <<"bar">>}, {<<"baz">>, <<"ooga">>}]}],
-    FailMissingExpectedNestedKey = [{<<"three">>, <<"three">>}, {<<"nested">>, [{<<"baz">>, <<"ooga">>}]}],
-    {fail, [
-            {not_equal, {"/nested/foo", <<"bar">>, undefined}}
-            ]
-    } = kvlists:match(ExpectedNestedKey, FailMissingExpectedNestedKey),
-
-    ok = kvlists:match(Expected, Expected),
-
-    ExpectedNested = [{<<"three">>, <<"three">>}, {"nested", [{"nested_one", 1}, {<<"nested_two">>, "two"}]}],
-
-    FailNestedMismatchStringValue = [
-            {<<"three">>, <<"three">>},
-            {"nested", [{"nested_one", 1}, {<<"nested_two">>, "TWO"}]}
-            ],
-    {fail, [
-            {not_equal, {"/nested/nested_two", "two", "TWO"}}
-            ]
-    } = kvlists:match(ExpectedNested, FailNestedMismatchStringValue),
-
-    ok = kvlists:match(ExpectedNested, ExpectedNested),
-
-    ExpectedNestedArray = [{<<"one">>, 1}, {<<"nested">>, [
-                    {<<"n_one1">>, <<"n_one_v1">>}, {<<"n_two1">>, <<"n_two_v1">>}
-                    ]}],
-    OffNestedArray = [{<<"one">>, 1}, {<<"nested">>, [
-                    {<<"n_one1xxx">>, <<"n_one_v1">>}, {<<"n_two1">>, <<"n_two_v1">>}
-                    ]}],
-    {fail, [
-            {not_equal, {"/nested/n_one1", <<"n_one_v1">>, undefined}},
-            {unexpected, {"/nested/n_one1xxx", undefined, <<"n_one_v1">>}}
-            ]
-    } = kvlists:match(ExpectedNestedArray, OffNestedArray),
-
-    ok = kvlists:match(ExpectedNestedArray, ExpectedNestedArray),
-
-    {fail, [
-            {not_equal, {"/nested/foo", <<"bar">>, undefined}},
-            {not_equal, {"/nested/foo2", <<"bar2">>, undefined}}
-            ]
-    } = kvlists:match([{<<"nested">>, [{<<"foo">>, <<"bar">>},{<<"foo2">>, <<"bar2">>}]}], [{<<"nested">>, []}]),
-
-    ok.
 
 t_override(_Config) ->
     Orig = [{<<"one">>, 1}, {"two", "two"}, {three, three}],
