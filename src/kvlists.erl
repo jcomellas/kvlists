@@ -258,15 +258,25 @@ get_values([], _List, Acc) ->
     lists:reverse(Acc).
 
 
-%% @doc Check that a <code>Pattern</code> represented by a kvlist where the
-%% <code>'_'</code> atom is used as a wildcard matches the <code>List</code>
-%% kvlist. Matching here means that:
-%%   - all key-value pairs exist in both kvlists.
-%%   - any value for key <code>foo</code> exists in <code>List</code> when the
-%%     <code>Pattern</code> contains the <code>{foo, term()}</code> item.
-%%   - extra key-value pairs exist in <code>List</code> when
-%%     the corresponding <code>Pattern</code> contains any use of the wildcard (<code>'_'</code>)
-%%     atom.
+%% @doc Matches a list of key-value pairs against a <code>Pattern</code> passed
+%% as a key-value list where optional keys, values or key-value pairs can be
+%% matched using the <code>'_'</code> atom as a wildcard. It returns a boolean
+%% value indicating that the match was successful.
+%%
+%% The <code>Pattern</code> is evaluated sequentially from head to tail, but
+%% the key-value pairs in the <code>List</code> need not follow the same order
+%% that was used in the <code>Pattern</code>.
+%%
+%% The wildcard atom <code>'_'</code> will match any expression at the nesting
+%% level where it was added in the pattern. Some of the ways in which it can
+%% be used are:
+%%
+%% - To match any value for key `foo`, use the key-value pair `{foo, '_'}`.
+%% - To match all keys with the same value, use `{'_' Value}`.
+%% - To match any key-value pair use `{'_' '_'}`.
+%% - To match anything (including key-value pairs) use `'_'`.
+%%
+%% The matching rules are applied recursively when the kvlist is nested.
 -spec match(Pattern :: kvlist(), List :: kvlist()) -> boolean().
 match('_', _Element) ->
     true;
