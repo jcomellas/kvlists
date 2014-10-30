@@ -47,7 +47,9 @@ groups() ->
        t_get_value,
        t_get_values,
        t_equal,
+       t_match,
        t_member,
+       t_override,
        t_set_path,
        t_set_value,
        t_set_values,
@@ -507,3 +509,110 @@ t_without(_Config) ->
     [{<<"def">>, 456}, {<<"ghi">>, 789}] = kvlists:without([<<"abc">>, <<"jkl">>], BinList),
     [{<<"abc">>, 123}] = kvlists:without([<<"def">>, <<"ghi">>], BinList),
     [] = kvlists:without([<<"abc">>, <<"def">>, <<"ghi">>], BinList).
+
+
+t_match(_Config) ->
+    Expected = [{<<"three">>, <<"three">>}, {"five", "five"}],
+
+    FailActualStringExpectedBinaryValue = [{<<"three">>, "three"}, {"five", "five"}],
+    {fail, [
+            {not_equal, {"/three", <<"three">>, "three"}}
+            ]
+    } = kvlists:match(Expected, FailActualStringExpectedBinaryValue),
+    FailActualBinaryExpectedStringValue = [{<<"three">>, <<"three">>}, {"five", <<"five">>}],
+    {fail, [
+            {not_equal, {"/five", "five", <<"five">>}}
+            ]
+    } = kvlists:match(Expected, FailActualBinaryExpectedStringValue),
+    FailActualStringExpectedBinaryKey = [{"three", <<"three">>}, {"five", "five"}],
+    {fail, [
+            {unexpected, {"/three", undefined, <<"three">>}},
+            {not_equal, {"/three", <<"three">>, undefined}}
+            ]
+    } = kvlists:match(Expected, FailActualStringExpectedBinaryKey),
+    FailActualBinaryExpectedStringKey = [{<<"three">>, <<"three">>}, {<<"five">>, "five"}],
+    {fail, [
+            {not_equal, {"/five", "five", undefined}},
+            {unexpected, {"/five", undefined, "five"}}
+            ]
+    } = kvlists:match(Expected, FailActualBinaryExpectedStringKey),
+    FailMismatchBinaryValue = [{<<"three">>, <<"THREE">>}, {"five", "five"}],
+    {fail, [
+            {not_equal, {"/three", <<"three">>, <<"THREE">>}}
+            ]
+    } = kvlists:match(Expected, FailMismatchBinaryValue),
+    FailMismatchStringValue = [{<<"three">>, <<"three">>}, {"five", "FIVE"}],
+    {fail, [
+            {not_equal, {"/five", "five", "FIVE"}}
+            ]
+    } = kvlists:match(Expected, FailMismatchStringValue),
+
+    MatchAnyValueForKey = [{<<"three">>, <<"three">>}, {"five", "five"}, {"foo", "bar"}],
+    ok = kvlists:match(lists:merge(Expected, [{"foo", any__}]), MatchAnyValueForKey),
+    MatchExtraKeyValue = [{<<"three">>, <<"three">>}, {"five", "five"}, {"foo", "bar"}, {"baz", "ooga"}],
+    ok = kvlists:match(lists:merge(Expected, [{any__, any__}]), MatchExtraKeyValue),
+
+    FailExtraKeyValue = [{<<"three">>, <<"three">>}, {"five", "five"}, {"foo", "bar"}],
+    {fail, [
+            {unexpected, {"/foo", undefined, "bar"}}
+            ]
+    } = kvlists:match(Expected, FailExtraKeyValue),
+
+    ExpectedNestedKey = [{<<"three">>, <<"three">>}, {<<"nested">>, [{<<"foo">>, <<"bar">>}, {<<"baz">>, <<"ooga">>}]}],
+    FailMissingExpectedNestedKey = [{<<"three">>, <<"three">>}, {<<"nested">>, [{<<"baz">>, <<"ooga">>}]}],
+    {fail, [
+            {not_equal, {"/nested/foo", <<"bar">>, undefined}}
+            ]
+    } = kvlists:match(ExpectedNestedKey, FailMissingExpectedNestedKey),
+
+    ok = kvlists:match(Expected, Expected),
+
+    ExpectedNested = [{<<"three">>, <<"three">>}, {"nested", [{"nested_one", 1}, {<<"nested_two">>, "two"}]}],
+
+    FailNestedMismatchStringValue = [
+            {<<"three">>, <<"three">>},
+            {"nested", [{"nested_one", 1}, {<<"nested_two">>, "TWO"}]}
+            ],
+    {fail, [
+            {not_equal, {"/nested/nested_two", "two", "TWO"}}
+            ]
+    } = kvlists:match(ExpectedNested, FailNestedMismatchStringValue),
+
+    ok = kvlists:match(ExpectedNested, ExpectedNested),
+
+    ExpectedNestedArray = [{<<"one">>, 1}, {<<"nested">>, [
+                    {<<"n_one1">>, <<"n_one_v1">>}, {<<"n_two1">>, <<"n_two_v1">>}
+                    ]}],
+    OffNestedArray = [{<<"one">>, 1}, {<<"nested">>, [
+                    {<<"n_one1xxx">>, <<"n_one_v1">>}, {<<"n_two1">>, <<"n_two_v1">>}
+                    ]}],
+    {fail, [
+            {not_equal, {"/nested/n_one1", <<"n_one_v1">>, undefined}},
+            {unexpected, {"/nested/n_one1xxx", undefined, <<"n_one_v1">>}}
+            ]
+    } = kvlists:match(ExpectedNestedArray, OffNestedArray),
+
+    ok = kvlists:match(ExpectedNestedArray, ExpectedNestedArray),
+
+    {fail, [
+            {not_equal, {"/nested/foo", <<"bar">>, undefined}},
+            {not_equal, {"/nested/foo2", <<"bar2">>, undefined}}
+            ]
+    } = kvlists:match([{<<"nested">>, [{<<"foo">>, <<"bar">>},{<<"foo2">>, <<"bar2">>}]}], [{<<"nested">>, []}]),
+
+    ok.
+
+t_override(_Config) ->
+    Orig = [{<<"one">>, 1}, {"two", "two"}, {three, three}],
+
+    [{<<"one">>, 1}, {"two", "two"}, {three, 3}] = kvlists:override(Orig, [{three, 3}]),
+    [{<<"one">>, 1}, {"two", 2}, {three, three}] = kvlists:override(Orig, [{"two", 2}]),
+    [{<<"one">>, 1}, {"two", "two"}, {two, 2}, {three, three}] = kvlists:override(Orig, [{two, 2}]),
+    [{<<"one">>, 1}, {"two", "two"}, {three, three}, {four, 4}] = kvlists:override(Orig, [{four, 4}]),
+
+    OrigNested = [{<<"one">>, 1}, {nested, [{n_one, "n1"}, {n_two, "n2"}]}],
+    [{<<"one">>, 1}, {nested, [ {n_two, 2}, {n_one, "n1"}]}]
+            = kvlists:override(OrigNested, [{nested, [{n_two, 2}]}]),
+    [{<<"one">>, 1}, {nested, [{n_two, "n2"}, {n_three, three}, {n_one, "n1"}]}]
+            = kvlists:override(OrigNested, [{nested, [{n_three, three}]}]),
+    ok.
