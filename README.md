@@ -77,6 +77,7 @@ The `kvlists` module also provides the following functions:
   * [get_value/3](#get_value3)
   * [get_values/2](#get_values2)
   * [equal/2](#equal2)
+  * [match/2](#match2)
   * [member/2](#member2)
   * [set_path/3](#set_path3)
   * [set_value/3](#set_value3)
@@ -395,6 +396,53 @@ false
 
 -------------
 
+### match/2
+Matches a list of key-value pairs against a `Pattern` passed as a key-value
+list where optional keys, values or key-value pairs can be matched using the
+`'_'` atom as wildcard. It returns a boolean value indicating that the match
+was successful.
+
+The `Pattern` is evaluated sequentially from head to tail, but the key-value
+pairs in the `List` need not follow the same order that was used in the
+`Pattern`.
+
+The wildcard atom `'_'` will match any expression in the nesting level where
+it was added in the pattern. Some of the ways in which it can be used are:
+
+| If you want to match...              | Pattern                  |
+|:-------------------------------------|:-------------------------|
+| any value for key `foo`              | `{foo, '_'}`             |
+| all keys with a single value         | `{'_', Value :: term()}` |
+| any key-value pair                   | `{'_', '_'}`             |
+| anything (including key-value pairs) | `'_'`                    |
+
+The matching rules are applied recursively when the kvlist is nested.
+
+#### Specification
+```erlang
+-spec match(Pattern :: kvlist(), List :: kvlist()) -> boolean().
+```
+#### Example
+```erlang
+1> List1 = [{abc, 111}, {def, 222}, {ghi, 222}].
+2> kvlists:match('_', List1).
+true
+3> kvlists:match([{'_', '_'}], List1).
+true
+4> kvlists:match([{def, 333}, '_'], List1).
+false
+5> kvlists:match([{def, 222}, {abc, '_'}, {ghi, 222}], List1).
+true
+6> kvlists:match(List1, List1).
+true
+7> kvlists:match([{transactions, [{canceled, '_'},
+                                  {total, 3659},
+                                  {ratings, [[{type, positive}, {percent, '_'}], '_']},
+                                  {'_', '_'}]}], List).
+true
+```
+
+-------------
 ### member/2
 Returns `true` if there is an entry in `List` whose key is equal to `Key`,
 otherwise `false`.
