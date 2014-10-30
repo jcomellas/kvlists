@@ -272,6 +272,8 @@ match('_', _Element) ->
     true;
 match(Element, Element) when not is_list(Element) ->
     true;
+match(['_' | _Tail1], _List2) ->
+    true;
 match([{'_', '_'} | _Tail1], _List2) ->
     true;
 match([{'_', Value} | _Tail1], List2) ->
