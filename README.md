@@ -24,7 +24,7 @@ Where `Value` can also be a nested list of key/value tuples.
 ## Requirements
 
 You should use a recent version of Erlang/OTP (the project has only been tested
-with Erlang R16B so far). You also need [GNU make](https://www.gnu.org/software/make/)
+with Erlang R16B and 17.x so far). You also need [GNU make](https://www.gnu.org/software/make/)
 and a recent version of [rebar](https://github.com/rebar/rebar) in the system path.
 
 
