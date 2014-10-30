@@ -130,34 +130,21 @@ delete_value(Key, List) ->
 %% are equal. Two kvlists are equal when they have the same keys with the same
 %% values, independently of the position of each key in the list.
 -spec equal(List1 :: kvlist(), List2 :: kvlist()) -> boolean().
-equal([{Key, Value1} | Tail1], [{Key, Value2} | Tail2]) ->
-    Equal = if
-                is_list(Value1), is_list(Value2) -> equal(Value1, Value2);
-                true                             -> Value1 =:= Value2
-            end,
-    if
-        Equal -> equal(Tail1, Tail2);
-        true -> false
-    end;
 equal([{Key, Value1} | Tail1], List2) ->
     case lists:keytake(Key, 1, List2) of
-        {value, {Key, Value2}, Tail2} when is_list(Value1), is_list(Value2) ->
-            case equal(Value1, Value2) of
-                true  -> equal(Tail1, Tail2);
-                false -> false
-            end;
-        {value, {Key, Value1}, Tail2} when not is_list(Value1) ->
-            equal(Tail1, Tail2);
-        {value, {Key, _Value2}, _NewList2} ->
-            false;
+        {value, {Key, Value2}, Tail2} ->
+            equal(Value1, Value2) andalso equal(Tail1, Tail2);
         false ->
             false
     end;
-equal(Element, Element) ->
+equal([Head1 | Tail1], [Head2 | Tail2])->
+  equal(Head1, Head2) andalso equal(Tail1, Tail2);
+equal(Element, Element) when not is_list(Element) ->
+    true;
+equal([], []) ->
     true;
 equal(_List1, _List2) ->
     false.
-
 
 
 %% @doc Performs the lookup of a <code>Path</code> (list of keys) over a nested
