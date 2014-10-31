@@ -8,9 +8,6 @@
 -module(kvlists).
 -author('Juan Jose Comellas <juanjo@comellas.org>').
 
--define(MATCH_ANY,  any__).
--define(UNEXPECTED, unexpected__).
-
 -export([delete_nth/2]).
 -export([delete_path/2]).
 -export([delete_value/2]).
