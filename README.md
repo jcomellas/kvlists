@@ -364,7 +364,7 @@ Retrieve the value for key `ghi`:
 ```erlang
 789 = kvlists:get_value(ghi, List).
 ```
-Retrieve the value for non-existent key:
+Retrieve the value for a non-existent key:
 ```erlang
 undefined = kvlists:get_value(jkl, List).
 ```
