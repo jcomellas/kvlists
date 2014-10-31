@@ -216,10 +216,13 @@ Deletes all entries associated with `Key` from `List`.
 -spec delete_value(Key :: key(), List :: kvlist()) -> kvlist().
 ```
 #### Example
+Given:
 ```erlang
-1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
-2> kvlists:delete_value(def, List).
-[{abc,123},{ghi,789}]
+List = [{abc, 123}, {def, 456}, {ghi, 789}].
+```
+Delete the value corresponding to the `def` key in the list:
+```erlang
+[{abc,123},{ghi,789}] = kvlists:delete_value(def, List).
 ```
 
 -------------
@@ -234,14 +237,24 @@ same values, independently of the order of the keys in the list.
 -spec equal(List1 :: kvlist(), List2 :: kvlist()) -> boolean().
 ```
 #### Example
+Given:
 ```erlang
-1> List1 = [{abc, 123}, {def, 456}, {ghi, 789}].
-2> List2 = [{abc, 123}, {ghi, 789}, {def, 456}].
-3> kvlists:equal(List1, List2).
-true
-4> List3 = [{abc, 100}, {def, 456}, {ghi, 789}].
-3> kvlists:equal(List1, List3).
-false
+List1 = [{abc, 123}, {def, 456}, {ghi, 789}].
+List2 = [{abc, 123}, {ghi, 789}, {def, 456}].
+```
+Check that the two kvlists are equal independently of the order of their
+elements:
+```erlang
+true = kvlists:equal(List1, List2).
+```
+Given
+```erlang
+List3 = [{abc, 100}, {def, 456}, {ghi, 789}].
+```
+Check that two kvlists are not equal when the value of one of its elements is
+different:
+```erlang
+false = kvlists:equal(List1, List3).
 ```
 
 -------------
@@ -343,12 +356,17 @@ Equivalent to `get_value(Key, List, undefined)`.
 -spec get_value(Key :: key(), List :: kvlist()) -> value() | undefined.
 ```
 #### Example
+Given:
 ```erlang
-1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
-2> kvlists:get_value(ghi, List).
-789
-3> kvlists:get_value(jkl, List).
-undefined
+List = [{abc, 123}, {def, 456}, {ghi, 789}].
+```
+Retrieve the value for key `ghi`:
+```erlang
+789 = kvlists:get_value(ghi, List).
+```
+Retrieve the value for non-existent key:
+```erlang
+undefined = kvlists:get_value(jkl, List).
 ```
 
 -------------
@@ -363,12 +381,17 @@ found in the list, this function returns the corresponding `Value`, otherwise
 -spec get_value(Key :: path_key(), List :: kvlist(), Default :: value()) -> value().
 ```
 #### Example
+Given:
 ```erlang
-1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
-2> kvlists:get_value(ghi, List, 100).
-789
-3> kvlists:get_value(jkl, List, 100).
-100
+List = [{abc, 123}, {def, 456}, {ghi, 789}].
+```
+Retrieve the value for key `ghi`:
+```erlang
+789 = kvlists:get_value(ghi, List, 100).
+```
+Retrieve the value for key `jkl`:
+```erlang
+100 = kvlists:get_value(jkl, List, 100).
 ```
 
 -------------
@@ -386,25 +409,30 @@ is just a key, then `undefined` is added to the returned list.
                  List :: kvlist()) -> Values :: [value()].
 ```
 #### Example
+Given:
 ```erlang
-1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
-2> kvlists:get_values([ghi], List).
-[789]
-3> kvlists:get_values([abc, {def, 100}, ghi, {jkl, 200}], List).
-[123, 456, 789, 200]
+List = [{abc, 123}, {def, 456}, {ghi, 789}].
+```
+Retrieve the value for key `ghi`:
+```erlang
+[789] = kvlists:get_values([ghi], List).
+```
+Retrieve multiple values with some of them set to defaults:
+```erlang
+[123, 456, 789, 200] = kvlists:get_values([abc, {def, 100}, ghi, {jkl, 200}], List).
 ```
 
 -------------
 
 ### match/2
-Matches a list of key-value pairs against a `Pattern` passed as a key-value
-list where optional keys, values or key-value pairs can be matched using the
-`'_'` atom as wildcard. It returns a boolean value indicating that the match
-was successful.
+Matches a list of key-value pairs against a `Pattern` passed as a kvlist where
+optional keys, values or key-value pairs can be matched using the `'_'` atom
+as wildcard. It returns a boolean value indicating that the match was
+successful.
 
 The `Pattern` is evaluated sequentially from head to tail, but the key-value
 pairs in the `List` need not follow the same order that was used in the
-`Pattern`.
+`Pattern` to match successfully.
 
 The wildcard atom `'_'` will match any expression at the nesting level where
 it was added in the pattern. Some of the ways in which it can be used are:
@@ -423,23 +451,49 @@ The matching rules are applied recursively when the kvlist is nested.
 -spec match(Pattern :: kvlist(), List :: kvlist()) -> boolean().
 ```
 #### Example
+Given:
 ```erlang
-1> List1 = [{abc, 111}, {def, 222}, {ghi, 222}].
-2> kvlists:match('_', List1).
-true
-3> kvlists:match([{'_', '_'}], List1).
-true
-4> kvlists:match([{def, 333}, '_'], List1).
-false
-5> kvlists:match([{def, 222}, {abc, '_'}, {ghi, 222}], List1).
-true
-6> kvlists:match(List1, List1).
-true
-7> kvlists:match([{transactions, [{canceled, '_'},
-                                  {total, 3659},
-                                  {ratings, [[{type, positive}, {percent, '_'}], '_']},
-                                  {'_', '_'}]}], List).
-true
+SimpleList = [{abc, 111}, {def, 222}, {ghi, 222}].
+```
+Match the list against the trivial wildcard pattern:
+```erlang
+true = kvlists:match('_', SimpleList).
+```
+Match the list against the tuple wildcard pattern:
+```erlang
+true = kvlists:match([{'_', '_'}], SimpleList).
+```
+Match the list against a pattern where an element with an incorrect value
+is checked:
+```erlang
+false = kvlists:match([{def, 333}, '_'], SimpleList).
+```
+Match the list against a pattern where two elements are matched exactly and
+another one is allowed to have any value:
+```erlang
+true = kvlists:match([{def, 222}, {abc, '_'}, {ghi, 222}], SimpleList).
+```
+Match the list against itself:
+```erlang
+true = kvlists:match(SimpleList, SimpleList).
+```
+Given:
+```erlang
+NestedList = [{transactions,
+               [{period, <<"3 months">>},
+                {total, 3659},
+                {completed, 3381},
+                {canceled, 278},
+                {ratings, [[{type, positive}, {percent, 99}],
+                           [{type, negative}, {percent, 0}],
+                           [{type, neutral}, {percent, 1}]]}]}].
+```
+Match the list against a complex pattern:
+```erlang
+true = kvlists:match([{transactions, [{canceled, '_'},
+                                      {total, 3659},
+                                      {ratings, [[{type, positive}, {percent, '_'}], '_']},
+                                      {'_', '_'}]}], NestedList).
 ```
 
 -------------
@@ -452,12 +506,17 @@ otherwise `false`.
 -spec member(Key :: key(), List :: kvlist()) -> boolean().
 ```
 #### Example
+Given:
 ```erlang
-1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
-2> kvlists:member(ghi, List).
-true
-3> kvlists:member(jkl, List).
-false
+List = [{abc, 123}, {def, 456}, {ghi, 789}].
+```
+Check that a key is present in the list:
+```erlang
+true = kvlists:member(ghi, List).
+```
+Check that a key is not present in the list:
+```erlang
+false = kvlists:member(jkl, List).
 ```
 
 -------------
@@ -582,10 +641,13 @@ Adds a property to the `List` with the corresponding `Key` and `Value`.
 -spec set_value(Key :: path_key(), Value :: value(), List :: kvlist()) -> kvlist().
 ```
 #### Example
+Given:
 ```erlang
-1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
-2> kvlists:set_value(def, 200, List).
-[{abc, 123}, {def, 200}, {ghi, 789}]
+List = [{abc, 123}, {def, 456}, {ghi, 789}].
+```
+Set the value of the key `def` to `200` in the list:
+```erlang
+[{abc, 123}, {def, 200}, {ghi, 789}] = kvlists:set_value(def, 200, List).
 ```
 
 -------------
@@ -615,12 +677,17 @@ Equivalent to `take_value(Key, List, undefined)`.
 -spec take_value(Key :: key(), List :: kvlist()) -> {value() | undefined, NewList :: kvlist()}.
 ```
 #### Example
+Given:
 ```erlang
-1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
-2> kvlists:take_value(ghi, List).
-{789, [{abc, 123}, {def, 456}]}
-3> kvlists:take_value(jkl, List).
-{undefined, [{abc, 123}, {def, 456}, {ghi, 789}]}
+List = [{abc, 123}, {def, 456}, {ghi, 789}].
+```
+Take the value of the key `ghi` out of the list:
+```erlang
+{789, [{abc, 123}, {def, 456}]} = kvlists:take_value(ghi, List).
+```
+Take the value of a non-existent key out of the list:
+```erlang
+{undefined, [{abc, 123}, {def, 456}, {ghi, 789}]} = kvlists:take_value(jkl, List).
 ```
 
 -------------
@@ -636,12 +703,18 @@ returned in a tuple with the original `List`.
 -spec take_value(Key :: path_key(), List :: kvlist(), Default :: value()) -> {value(), NewList :: kvlist()}.
 ```
 #### Example
+Given:
 ```erlang
-1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
-2> kvlists:take_value(ghi, List, 100).
-{789, [{abc, 123}, {def, 456}]}
-3> kvlists:take_value(jkl, List, 100).
-{100, [{abc, 123}, {def, 456}, {ghi, 789}]}
+List = [{abc, 123}, {def, 456}, {ghi, 789}].
+```
+Take the value of the key `ghi` out of the list:
+```erlang
+{789, [{abc, 123}, {def, 456}]} = kvlists:take_value(ghi, List, 100).
+```
+Take the value of a non-existent key out of the list, assigning a default
+value to it:
+```erlang
+{100, [{abc, 123}, {def, 456}, {ghi, 789}]} = kvlists:take_value(jkl, List, 100).
 ```
 
 -------------
@@ -661,12 +734,18 @@ added to the returned list.
                  List :: kvlist()) -> {Values :: [value()], NewList :: kvlist()}.
 ```
 #### Example
+Given:
 ```erlang
-1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
-2> kvlists:take_values([ghi], List).
-{[789], [{abc, 123}, {def, 456}]}
-3> kvlists:take_values([abc, {def, 100}, ghi, {jkl, 200}], List).
-{[123, 456, 789, 200], []}
+List = [{abc, 123}, {def, 456}, {ghi, 789}].
+```
+Take the value of the key `ghi` out of the list:
+```erlang
+{[789], [{abc, 123}, {def, 456}]} = kvlists:take_values([ghi], List).
+```
+Take the values of several keys out of the list, with some of them using
+default values:
+```erlang
+{[123, 456, 789, 200], []} = kvlists:take_values([abc, {def, 100}, ghi, {jkl, 200}], List).
 ```
 
 -------------
@@ -680,10 +759,13 @@ of `Keys`.
 -spec with(Keys :: [key()], List :: kvlist()) -> NewList :: kvlist().
 ```
 #### Example
+Given:
 ```erlang
-1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
-2> kvlists:with([abc, ghi], List).
-[{abc, 123}, {ghi, 789}]
+List = [{abc, 123}, {def, 456}, {ghi, 789}].
+```
+Return the list with only the `abc` and `ghi` keys in it:
+```erlang
+[{abc, 123}, {ghi, 789}] = kvlists:with([abc, ghi], List).
 ```
 
 -------------
@@ -697,8 +779,11 @@ of `Keys`.
 -spec without(Keys :: [key()], List :: kvlist()) -> NewList :: kvlist().
 ```
 #### Example
+Given:
 ```erlang
-1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
-2> kvlists:without([abc, ghi], List).
-[{def, 456}]
+List = [{abc, 123}, {def, 456}, {ghi, 789}].
+```
+Return the list without the `abc` and `ghi` keys:
+```erlang
+[{def, 456}] = kvlists:without([abc, ghi], List).
 ```
