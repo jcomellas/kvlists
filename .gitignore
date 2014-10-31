@@ -2,5 +2,6 @@ deps
 ebin
 logs
 test/*.beam
+.rebar
 *.plt
 erl_crash.dump
