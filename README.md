@@ -72,11 +72,11 @@ The `kvlists` module also provides the following functions:
 
   * [delete_path/2](#delete_path2)
   * [delete_value/2](#delete_value2)
+  * [equal/2](#equal2)
   * [get_path/2](#get_path2)
   * [get_value/2](#get_value2)
   * [get_value/3](#get_value3)
   * [get_values/2](#get_values2)
-  * [equal/2](#equal2)
   * [match/2](#match2)
   * [member/2](#member2)
   * [set_path/3](#set_path3)
@@ -220,6 +220,28 @@ Deletes all entries associated with `Key` from `List`.
 1> List = [{abc, 123}, {def, 456}, {ghi, 789}].
 2> kvlists:delete_value(def, List).
 [{abc,123},{ghi,789}]
+```
+
+-------------
+
+### equal/2
+Returns a boolean value indicating that two key-value lists are equal.
+Two lists are equal when they have the same keys and when those keys have the
+same values, independently of the order of the keys in the list.
+
+#### Specification
+```erlang
+-spec equal(List1 :: kvlist(), List2 :: kvlist()) -> boolean().
+```
+#### Example
+```erlang
+1> List1 = [{abc, 123}, {def, 456}, {ghi, 789}].
+2> List2 = [{abc, 123}, {ghi, 789}, {def, 456}].
+3> kvlists:equal(List1, List2).
+true
+4> List3 = [{abc, 100}, {def, 456}, {ghi, 789}].
+3> kvlists:equal(List1, List3).
+false
 ```
 
 -------------
@@ -370,28 +392,6 @@ is just a key, then `undefined` is added to the returned list.
 [789]
 3> kvlists:get_values([abc, {def, 100}, ghi, {jkl, 200}], List).
 [123, 456, 789, 200]
-```
-
--------------
-
-### equal/2
-Returns a boolean value indicating that two key-value lists are equal.
-Two lists are equal when they have the same keys and when those keys have the
-same values, independently of the order of the keys in the list.
-
-#### Specification
-```erlang
--spec equal(List1 :: kvlist(), List2 :: kvlist()) -> boolean().
-```
-#### Example
-```erlang
-1> List1 = [{abc, 123}, {def, 456}, {ghi, 789}].
-2> List2 = [{abc, 123}, {ghi, 789}, {def, 456}].
-3> kvlists:equal(List1, List2).
-true
-4> List3 = [{abc, 100}, {def, 456}, {ghi, 789}].
-3> kvlists:equal(List1, List3).
-false
 ```
 
 -------------
